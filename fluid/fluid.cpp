@@ -12,7 +12,7 @@ int main(int argc, char *argv[]){
     int res;
     res = ProgArgs(arguments);
     if ( res < 0){
-        exit(abs(res));
+        exit(res);
     }
     return 0;
 }

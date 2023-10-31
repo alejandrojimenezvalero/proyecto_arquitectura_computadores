@@ -7,12 +7,13 @@ using namespace std;
 
 int ProgArgs (const vector<string> &arguments){
     size_t n_args = arguments.size();
-    ifstream inputFile(arguments[1]);
-    ofstream outputFile(arguments[2]);
     if (n_args != 3){
         cerr << "Error: Invalid number of arguments: " << n_args << "." << endl;
         return -1;
-    }try {
+    }
+    ifstream inputFile(arguments[1]);
+    ofstream outputFile(arguments[2]);
+    try {
         int numSteps = stoi(arguments[0]);
         if (numSteps < 0) {
             cerr << "Error: Invalid number of time steps." << endl;
