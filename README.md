@@ -1,1 +1,1 @@
-# proyecto_arquitectura_computadores
+# Este proyecto trata de programación orientada al rendimiento en lenguaje C++
