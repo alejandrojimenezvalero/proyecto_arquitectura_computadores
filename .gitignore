@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# Project gitignores
+.idea
+cmake-build-debug-wsl
+cmake-build-release-wsl
+fluid.exe

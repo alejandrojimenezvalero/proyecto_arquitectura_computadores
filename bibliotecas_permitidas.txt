@@ -1,0 +1,32 @@
+<algorithm>	    Standard algorithms that operate on containers
+<bitset>	    Fixed-size sequences of bits
+<complex>	    The numeric type representing complex numbers
+<deque>	        Sequences supporting addition and removal at each end
+<exception>	    Predefined exception classes
+<fstream>	    Stream I/O on files
+<functional>    Function objects
+<iomanip>	    iostream manipulators
+<ios>	        iostream base classes
+<iosfwd>	    Forward declarations of iostream classes
+<iostream>	    Basic stream I/O functionality
+<istream>	    Input I/O streams
+<iterator>	    Class for traversing a sequence
+<limits>	    Properties of numeric types
+<list>	        Ordered sequences
+<locale>	    Support for internationalization
+<map>	        Associative containers with key/value pairs
+<memory>	    Special memory allocators
+<new>	        Basic memory allocation and deallocation
+<numeric>	    Generalized numeric operations
+<ostream>	    Output I/O streams
+<queue>	        Sequences supporting addition at the head and removal at the tail
+<set>	        Associative container with unique keys
+<sstream>	    Stream I/O using an in-memory string as source or sink
+<stack>	        Sequences supporting addition and removal at the head
+<stdexcept> 	Additional standard exception classes
+<streambuf>	    Buffer classes for iostreams
+<string>	    Sequences of characters
+<typeinfo>	    Run-time type identification
+<utility>	    Comparison operators
+<valarray>	    Value arrays useful for numeric programming
+<vector>	    Sequences supporting random access
