@@ -11,7 +11,7 @@ int main(int argc, char *argv[]){
     vector<string> const arguments{args_view.begin() + 1, args_view.end()};
     int res;
     res = ProgArgs(arguments);
-    if ( res < 0){
+    if (res < 0){
         exit(res);
     }
     return 0;
