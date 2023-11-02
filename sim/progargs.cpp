@@ -3,7 +3,7 @@
 #include <vector>
 #include <cmath>
 #include <stdexcept>
-
+#include "../sim/exceptionHandler.cpp"
 using namespace std;
 namespace simulationConstants {
   const float radio_multiplicator = 1.695;
@@ -19,25 +19,32 @@ namespace simulationConstants {
   const vector<float> upper_limit{0.065, 0.1, 0.065};
   const vector<float> lower_limit{-0.065,-0.08, -0.065};
 }
-int initiateSimulation(std::ifstream &input_file) {
-  int res = 0;
-  if (!input_file) {
-    res = -3;
-    return res;
-  }
+void calculateParameters(double ppm, int np) {
+  using namespace simulationConstants;
+  double smoothing_length = radio_multiplicator / ppm;
+  double particle_mass = fluid_density / pow(ppm, 3);
 
-  float ppm;
-  int np;
-  input_file.read(reinterpret_cast<char *>(&ppm), sizeof(float));
-  input_file.read(reinterpret_cast<char *>(&np), sizeof(int));
+  vector<double> enclousure {upper_limit[0] - lower_limit[0], upper_limit[1] - lower_limit[1],upper_limit[2] - lower_limit[2]};
+  vector<double> mesh {round((enclousure[0]) / smoothing_length), round((enclousure[1]) / smoothing_length), round((enclousure[2]) / smoothing_length)};
+  vector<double> block_size{enclousure[0]/mesh[0],enclousure[1]/mesh[1],enclousure[2]/mesh[2]};
 
-  if (np < 0) {
-    std::cerr << "Error: Invalid number of particles: " << np << "." << '\n';
-    res = -5;
-    return res;
-  }
+  cout << "Number of particles: " << np << '\n';
+  cout << "Particles per meter: " << ppm << '\n';
+  cout << "Smoothing length: " << smoothing_length << '\n';
+  cout << "Particle mass: " << particle_mass << '\n';
+  cout << "Grid size: " << mesh[0] << " x " << mesh[1] << " x " << mesh[2] << '\n';
+  cout << "Number of blocks: " << mesh[0]  * mesh[1]  * mesh[2]  << '\n';
+  cout << "Block size: " << block_size[0] << " x " << block_size[1] << " x " << block_size[2] << '\n';
+}
 
-  std::vector<float> buffer;
+std::ifstream openFile(const std::string& inputFile){
+  std::ifstream input_file(inputFile);
+  exceptionHandler(!input_file, "Cannot open " + inputFile + " for reading", -3);
+  return input_file;
+}
+int saveParticles(const std::string& inputFile){
+  std::ifstream input_file = openFile(inputFile);
+  std::vector<double> buffer;
   float value;
   while (input_file.read(reinterpret_cast<char *>(&value), sizeof(float))) {
     buffer.push_back(value);
@@ -47,87 +54,42 @@ int initiateSimulation(std::ifstream &input_file) {
   int bsize = static_cast<int>(buffer_size);
 
   int real_particles_number = bsize / 9;
-
-  if (np != real_particles_number) {
-    std::cerr << "Error: Number of particles mismatch. Header:  " << np
-              << ", Found: " << real_particles_number << '\n';
-    res = -5;
-    return res;
-  }
-
-  double smoothing_length = simulationConstants::radio_multiplicator / ppm;
-  double particle_mass = simulationConstants::fluid_density / pow(ppm, 3);
-
-  std::cout << "Number of particles: " << np << std::endl;
-  std::cout << "Particles per meter: " << ppm << std::endl;
-  std::cout << "Smoothing length: " << smoothing_length << std::endl;
-  std::cout << "Particle mass: " << particle_mass << std::endl;
-
-  double x_length = simulationConstants::upper_limit[0] - simulationConstants::lower_limit[0];
-  double y_length = simulationConstants::upper_limit[1] - simulationConstants::lower_limit[1];
-  double z_length = simulationConstants::upper_limit[2] - simulationConstants::lower_limit[2];
-
-  double nx = round((x_length) / smoothing_length);
-  double ny = round((y_length) / smoothing_length);
-  double nz = round((z_length) / smoothing_length);
-
-  double sx = (x_length) / nx;
-  double sy = (y_length) / ny;
-  double sz = (z_length) / nz;
-
-  std::cout << "Grid size: " << nx << " x " << ny << " x " << nz << std::endl;
-  std::cout << "Number of blocks: " << nx * ny * nz << std::endl;
-  std::cout << "Block size: " << sx << " x " << sy << " x " << sz << std::endl;
-
-  // No es necesario cerrar el archivo aquí, ya que se cierra automáticamente al salir de la función
-  return res;
+  return real_particles_number;
 }
 
+int initiateSimulation(const std::string& inputFile) {
+  std::ifstream input_file = openFile(inputFile);
+  //double doubleNumber = static_cast<double>(floatNumber);
+  float ppmFloat;
+  input_file.read(reinterpret_cast<char *>(&ppmFloat), sizeof(float));
+  double ppm = static_cast<double>(ppmFloat);
+  int np;
+  input_file.read(reinterpret_cast<char *>(&np), sizeof(int));
 
-int ProgArgs(const std::vector<std::string> &arguments) {
-  int res = 0;
-    const size_t n_args = arguments.size();
-  if (n_args != 3) {
-    std::cerr << "Error: Invalid number of arguments: " << n_args << "." << '\n';
-    return res = -1;
-  }
+  exceptionHandler(np < 0, "Error: Invalid number of particles: " + std::to_string(np) , -5);
 
-    const std::string inputFile = arguments[1];
-    const std::string outputFile = arguments[2];
+  calculateParameters(ppm, np);
+  //Debemos llamar a la función que guarda los parámetros de las partículas
+  int real_particles_number = saveParticles(inputFile);
+  exceptionHandler(np != real_particles_number, "Error: Number of particles mismatch. Header:  "+ std::to_string(np) + ", Found: " + std::to_string(real_particles_number)  , -5);
+  return 0;
+}
 
-  std::ifstream input_file(inputFile, std::ios::binary);
-  std::ofstream output_file(outputFile);
-
-  if (!input_file) {
-    std::cerr << "Error: Could not open the input file." << '\n';
-    return -3;
-  }
-
-  if (!output_file) {
-    std::cerr << "Error: Could not open the output file." << '\n';
-    return -4;
-  }
-
+int validateParameters(const std::vector<std::string> &arguments) {
+  size_t n_args = arguments.size();
+  exceptionHandler(n_args != 3,"Error: Invalid number of arguments: " + std::to_string(n_args) + ".", -1);
+  ifstream inputFile(arguments[1]); ofstream outputFile(arguments[2]);
   try {
-        const int numSteps = std::stoi(arguments[0]);
-    if (numSteps < 0) {
-      std::cerr << "Error: Invalid number of time steps." << '\n';
-      return -2;
-    }
-  } catch (const std::invalid_argument &) {
-    std::cerr << "Error: Time steps must be numeric." << '\n';
-    return -1;
-  }
-
-  res = initiateSimulation(input_file);
-
-  if (res < 0) {
-    return res;
-  }
-
-  // Cierra los archivos al salir de la función
-  input_file.close();
-  output_file.close();
-
-  return res;
+    exceptionHandler(stoi(arguments[0]) < 0, "Error: Invalid number of time steps.", -2);
+  } catch (const invalid_argument &) {throwException("Error: time steps must be numeric.", -1);}
+  exceptionHandler(!inputFile, "Cannot open " + arguments[1] + " for reading", -3);
+  exceptionHandler(!outputFile, "Cannot open " + arguments[2] + " for writing", -4);
+  inputFile.close();
+  outputFile.close();
+  return 0;
 }
+
+
+//Definir que variables son constantes
+//Refactorizar la lectura de particulas como struct of arrays
+/*Decidir que funciones van en los difernetes modulos sobre todo lo referido a grid y block*/
