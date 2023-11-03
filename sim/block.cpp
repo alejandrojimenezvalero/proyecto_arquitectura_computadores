@@ -1,8 +1,8 @@
 
 #include "constants.hpp"
 #include "block.hpp"
-#include "grid.cpp"
-
+#include "grid.hpp"
+#include "cmath"
 using namespace simulationConstants;
 
 blockSize calculateBlockSize(gridSize grid){

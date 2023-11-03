@@ -79,7 +79,7 @@ int validateParameters(const std::vector<std::string> &arguments) {
   return 0;
 }
 
-
-//Definir que variables son constantes
+//Mover las funciones que no sean de validacion de argumentos de entrada del main a otros ficheros
+//Comenzar a leer los datos de la particulas: particles sera un struct
+//Calcular el los indices de bloque para cada particula
 //Refactorizar la lectura de particulas como struct of arrays
-/*Decidir que funciones van en los difernetes modulos sobre todo lo referido a grid y block*/

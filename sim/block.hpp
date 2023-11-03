@@ -1,6 +1,6 @@
 #ifndef BLOCK_HPP
 #define BLOCK_HPP
-#include "grid.cpp"
+#include "grid.hpp"
 
 struct blockSize{
     double sx;
