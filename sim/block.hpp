@@ -1,5 +1,6 @@
 #ifndef BLOCK_HPP
 #define BLOCK_HPP
+
 #include "grid.hpp"
 
 struct blockSize{
