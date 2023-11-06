@@ -1,20 +1,37 @@
 //
-#include "exceptionHandler.hpp"
-#include "constants.hpp"
-#include "grid.hpp"
-#include "block.hpp"
-#include "fileManager.hpp"
-#include "particle.hpp"
-#include "simulation.hpp"
+#include "initSimulation.hpp"
 
-#include <iostream>
-#include <fstream>
+#include "block.hpp"
+#include "constants.hpp"
+#include "exceptionHandler.hpp"
+#include "fileManager.hpp"
+#include "grid.hpp"
+#include "particle.hpp"
+
 #include <cmath>
+#include <fstream>
+#include <iostream>
 #include <stdexcept>
-#include <unordered_map>
+#include <map>
 
 using namespace simulationConstants;
 
+
+std::map<std::vector<int>, std::vector<Particle>> createMap(gridSize grid){
+
+  std::map<std::vector<int>, std::vector<Particle>> initMap;
+  for (int i =0; i < grid.nx; ++i) {
+    for (int j=0; j < grid.ny; ++j) {
+      for (int k=0; k < grid.nz; ++k){
+        std::vector<Particle> addVector{};
+        std::vector<int> key = {i, j, k};
+        initMap[key] = addVector;
+      }
+    }
+  }
+  return initMap;
+
+}
 int checkBlockIndex(int &i, int &j, int &k, gridSize grid){
   i = (i < 0)? 0:i;
   i = (i > grid.nx-1)? grid.nx-1:i;
@@ -31,7 +48,7 @@ SimulationData calculateParameters(double ppm, int np) {
   gridSize grid = calculateGridSize(smoothing_length);
   blockSize block = calculateBlockSize(grid);
 
-  SimulationData data{grid, block};
+  SimulationData data{grid, block, smoothing_length, particle_mass};
   std::cout << "Number of particles: " << np << '\n';
   std::cout << "Particles per meter: " << ppm << '\n';
   std::cout << "Smoothing length: " << smoothing_length << '\n';
@@ -43,8 +60,10 @@ SimulationData calculateParameters(double ppm, int np) {
 }
 int setParticleData(const std::string& inputFile, SimulationData data){
   std::ifstream input_file = openFile(inputFile);
-  std::unordered_map<int, Particle> particleMap;
-  int particle_index = 0;
+  //std::map<std::vector<int>, std::unordered_map<int, Particle>> particleMap;
+  std::map<std::vector<int>, std::vector<Particle>> particleMap = createMap(data.grid);
+  //std::cout << "Particle Map: " << particleMap.size() << '\n';
+  int real_particles = 0;
   input_file.seekg(8,std::ios::beg);
   while(!input_file.eof()){
     Particle particle;
@@ -61,15 +80,28 @@ int setParticleData(const std::string& inputFile, SimulationData data){
 
     gridSize grid = data.grid;
     checkBlockIndex(particle.i, particle.j, particle.k, grid);
+    //std::cout << "Particle index:" << particle.i << " " << particle.j << " " << particle.k << " " << '\n';
     if (input_file.eof()) {
       break;
     }
-    particleMap[particle_index] = particle;
-    ++particle_index;
-  };
+    particleMap[{particle.i,particle.j,particle.k}].push_back(particle);
+    ++real_particles;
+  }
+  /* COMPROBAMOS QUE EL MAPA ESTÁ BIEN CREADO, VIENDO QUE EN CADA BLOQUE HAY X PARTICULAS Y VIENDO QUE EL NÚ,ERO TOTAL ES EXACTAMENTE 4800
+  int contador = 0;
+  for(auto &keyValue: particleMap){
+    std::vector<int> key = keyValue.first;
+    std::vector<Particle> particles = keyValue.second;
+    //std::cout << "Bloque de indices " << "i: "<< key[0] << " j: "<< key[1] << " k: " << key[2] << '\n' << " => Particulas del bloque: "<< '\n';
+    //std::cout << "Número de partículas de bloque: " << particles.size() << '\n';
+    contador += particles.size();
+    for (Particle particle : particles) {
+      std::cout << "Partícula: " << particle.px << "," << '\n';
+    }
+  }
+  std::cout << "Numero de particulas total: " << contador << '\n';
+  */
   /*
-  Particle particula2 = particleMap[989];
-  std::cout << "Partícula con índice 1675:\n"
   << "px: " << particula2.px << "\n"
   << "py: " << particula2.py << "\n"
   << "pz: " << particula2.pz << "\n"
@@ -83,7 +115,7 @@ int setParticleData(const std::string& inputFile, SimulationData data){
   << "j: " << particula2.j << "\n"
   << "k: " << particula2.k << std::endl;
   */
-  return particle_index;
+  return real_particles;
 }
 
 int initiateSimulation(const std::string& inputFile) {
@@ -99,7 +131,7 @@ int initiateSimulation(const std::string& inputFile) {
 
   SimulationData data = calculateParameters(ppm, np);
   //Debemos llamar a la función que guarda los parámetros de las partículas
-  int real_particles_number = setParticleData(inputFile, data);
-  exceptionHandler(np != real_particles_number, "Error: Number of particles mismatch. Header:  "+ std::to_string(np) + ", Found: " + std::to_string(real_particles_number)  , -5);
+  int real_particles= setParticleData(inputFile, data);
+  exceptionHandler(np != real_particles, "Error: Number of particles mismatch. Header:  "+ std::to_string(np) + ", Found: " + std::to_string(real_particles)  , -5);
   return 0;
 }

@@ -11,10 +11,12 @@ add_library(sim
         constants.hpp
         fileManager.cpp
         fileManager.hpp
-        simulation.cpp
-        simulation.hpp
+        initSimulation.cpp
+        initSimulation.hpp
         particle.cpp
         particle.hpp
+        processSimulation.cpp
+        processSimulation.hpp
 )
 # Use this line only if you have dependencies from stim to GSL
 target_link_libraries(sim PRIVATE Microsoft.GSL::GSL)

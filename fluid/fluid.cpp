@@ -1,6 +1,8 @@
 //
+#include "../sim/initSimulation.cpp"
 #include "../sim/progargs.cpp"
-#include "../sim/simulation.cpp"
+#include "../sim/processSimulation.cpp"
+
 #include <span>
 #include <vector>
 
