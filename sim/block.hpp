@@ -2,6 +2,7 @@
 #define BLOCK_HPP
 
 #include "grid.hpp"
+#include "particle.hpp"
 
 struct blockSize{
     double sx;
@@ -10,5 +11,6 @@ struct blockSize{
 };
 
 blockSize calculateBlockSize(gridSize grid);
+void calcParticleIndex(Particle particle, blockSize block);
 
 #endif
