@@ -4,13 +4,13 @@
 #include "grid.hpp"
 #include "particle.hpp"
 
-struct blockSize{
-    double sx;
-    double sy;
-    double sz;
+struct Block{
+    std::vector<int> block_index{};
+    std::vector<Particle> block_particles;
 };
 
-blockSize calculateBlockSize(gridSize grid);
-void calcParticleIndex(Particle particle, blockSize block);
+std::vector<double> calculateBlockSize(gridSize grid);
+Block createBlock(int i, int j, int k);
+std::vector<int> calcParticleIndex(Particle particle, std::vector<double> block_dimensions);
 
 #endif

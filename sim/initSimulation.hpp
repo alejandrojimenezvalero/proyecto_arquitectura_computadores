@@ -16,15 +16,15 @@
 
 struct SimulationData{
     gridSize grid;
-    blockSize block;
+    std::vector<double> block_dimensions{};
     double smoothing_length;
     double particle_mass;
     bool all_particles_density_updated = false;
 };
-std::map<std::vector<int>, std::vector<Particle>> createMap(gridSize grid);
+std::map<std::vector<int>, Block>  createMap(gridSize grid);
 int checkBlockIndex(int &i, int &j, int &k, gridSize grid);
 SimulationData calculateParameters(double ppm, int np);
-std::tuple< int, std::map<std::vector<int>, std::vector<Particle>> > setParticleData(const std::string& inputFile, SimulationData data);
+std::tuple< int, std::map<std::vector<int>, Block>  > setParticleData(const std::string& inputFile, SimulationData data);
 int initiateSimulation(const std::string& n_iterations, const std::string& inputFile);
 
 #endif  // FLUID_INITSIMULATION_HPP

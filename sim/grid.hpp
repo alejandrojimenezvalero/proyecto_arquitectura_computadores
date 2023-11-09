@@ -1,6 +1,10 @@
 #ifndef GRID_HPP
 #define GRID_HPP
 
+#include "particle.hpp"
+
+#include <vector>
+#include <map>
 
 struct gridSize{
     double nx;
