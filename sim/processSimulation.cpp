@@ -46,25 +46,25 @@ map<vector<int>,vector<vector<int>>> createAdjacentBlocks(gridSize& grid) {
   }
   return adjacentBlocks;
 }
-// ACTUALIZADA
-std::tuple<std::shared_ptr<std::vector<Particle>>, std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> > createSubMap(std::vector<int> current_block_key, std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap, vector<vector<int>> adjacent_blocks){
-    std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> particleSubMap;
+// ACTUALIZADA 2.0
+std::tuple<std::shared_ptr<std::vector<Particle>>, std::vector<Block> > createSubMap(std::vector<int> current_block_key, std::vector<Block>& particleMap, vector<vector<int>> adjacent_blocks){
+    std::vector<Block> particleSubMap;
     vector<int> block_key;
     std::shared_ptr<std::vector<Particle>> block_adj_particles;
     std::shared_ptr<std::vector<Particle>> current_block_particles;
     //cout << "-------------------------" << '\n';
     //cout << current_block_key[0] << ", " << current_block_key[1] << ", " << current_block_key[2] << '\n';
     //cout << "-------------------------" << '\n';
-    for (auto block: particleMap){
-        block_key = block.first;
-        block_adj_particles = block.second;
+    for (Block block: particleMap){
+        block_key = block.block_index;
+        block_adj_particles = block.block_particles;
         if (block_key == current_block_key){
-            current_block_particles = block.second;
+            current_block_particles = block.block_particles;
         }
         for (auto adj_block: adjacent_blocks){
             if(block_key == adj_block){
                 //cout << block_key[0] << ", " << block_key[1] << ", " << block_key[2] << '\n';
-                particleSubMap[adj_block] = block_adj_particles;
+                particleSubMap.emplace_back(block);
             }
         }
     }
@@ -133,11 +133,11 @@ void updateBlock(std::vector<Particle> current_block_particles, std::map<std::ve
     }
 }
  */
-void initializeDensityAcceleration(std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap){
+void initializeDensityAcceleration(std::vector<Block>& particleMap){
     std::vector<int> block_index;
     std::shared_ptr<std::vector<Particle>> block_particles;
-    for (auto block: particleMap){
-        block_particles = block.second;
+    for (Block block: particleMap){
+        block_particles = block.block_particles;
         for(Particle& particle: *block_particles){
             particle.density = 0.0;
             particle.density_updated = false;
@@ -147,7 +147,7 @@ void initializeDensityAcceleration(std::map<std::vector<int>, std::shared_ptr<st
     }
 }
 // ACTUALIZADA
-void updateBlock2(std::shared_ptr<std::vector<Particle>> current_block_particles, std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleSubMap, SimulationData& data, std::string mode){
+void updateBlock2(std::shared_ptr<std::vector<Particle>> current_block_particles, std::vector<Block>& particleSubMap, SimulationData& data, std::string mode){
     // REFACTORIZAR CON VECTORES
     //cout << mode << '\n';
     double h = data.smoothing_length;
@@ -155,8 +155,8 @@ void updateBlock2(std::shared_ptr<std::vector<Particle>> current_block_particles
     //check_iter=0-> USAMOS density_updated, check_iter=1-> USAMOS density_updated2
     //el using_update_adj, usará en la ADJUNTA density_updated si estamos en check_iter=0, y usará density_updated2 si estamos en check_iter=1
     for(Particle& particle : *current_block_particles){
-        for(auto block: particleSubMap){
-            std::shared_ptr<std::vector<Particle>> adj_particles = block.second;
+        for(Block& block: particleSubMap){
+            std::shared_ptr<std::vector<Particle>> adj_particles = block.block_particles;
             for(Particle& adj_particle: *adj_particles){
                 norm = calculateNorm({particle.px,particle.py,particle.pz}, {adj_particle.px, adj_particle.py, adj_particle.pz});
                 if (mode =="density"){
@@ -209,13 +209,13 @@ void updateBlock2(std::shared_ptr<std::vector<Particle>> current_block_particles
 }
 
 // ACTUALIZADA
-int modifyBlock(std::vector<int> current_block_key, std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap, std::map<std::vector<int>,std::vector<std::vector<int>>>& adjacent_blocks_map, SimulationData& data) {
+int modifyBlock(std::vector<int> current_block_key, std::vector<Block>& particleMap, std::map<std::vector<int>,std::vector<std::vector<int>>>& adjacent_blocks_map, SimulationData& data) {
 
   // En el mapa de bloques adyacentes tenemos pares clave-valor de la forma bloque {i,j,k} = vector bloques adyacentes{{i,j,k}, {i,j,k},...}
   // Tomamos un vector de bloques adyacentes al bloque en el que está la partícula que se recibe como parámetro
   std::vector<vector<int>> adjacent_blocks = adjacent_blocks_map[current_block_key];
   // Así tomamos un submapa del mapa de partículas de manera que nos quedamos con los pares {i,j,k} = {P1,P2,..} para todos los bloques adyacentes
-  std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> particleSubMap;
+  std::vector<Block> particleSubMap;
   std::shared_ptr<std::vector<Particle>> current_block_particles;
   std::tie(current_block_particles, particleSubMap) = createSubMap(current_block_key, particleMap, adjacent_blocks);
   /*Teniendo el submapa con claves indices de bloques adyacentes al bloque de la partícula parámetro , y valores las partículas de dichos bloques adyacentes
@@ -403,7 +403,7 @@ void establishParticleFunctionality(std::map<std::vector<int>, std::shared_ptr<s
 }
 
 
-int processSimulation(std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap, SimulationData& data){
+int processSimulation(std::vector<Block>& particleMap, SimulationData& data){
     map<vector<int>,vector<vector<int>>> adjacent_blocks;
     adjacent_blocks = createAdjacentBlocks(data.grid);
 
@@ -412,20 +412,20 @@ int processSimulation(std::map<std::vector<int>, std::shared_ptr<std::vector<Par
     //el updateDensityFalse se usará si decidimos dar prioridad a la memoria
     //updateDensityFalse(particleMap)
     std::cout << "before modify density" << '\n';
-    for(auto current_block : particleMap){
-        current_block_key = current_block.first;
+    for(Block& current_block : particleMap){
+        current_block_key = current_block.block_index;
         modifyBlock(current_block_key, particleMap, adjacent_blocks, data);
         //std::cout << c << '\n';
         //c+=1;
     }
     std::cout << "after modify density" << '\n';
     data.all_particles_density_updated = true;
-    for(auto current_block: particleMap){
-        current_block_key = current_block.first;
+    for(Block& current_block : particleMap){
+        current_block_key = current_block.block_index;
         modifyBlock(current_block_key, particleMap, adjacent_blocks, data);
     }
     data.all_particles_density_updated = false;
-    establishParticleFunctionality(particleMap, data);
+    //establishParticleFunctionality(particleMap, data);
     initializeDensityAcceleration(particleMap);
 
     return 0;

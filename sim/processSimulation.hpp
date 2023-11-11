@@ -13,7 +13,7 @@
 
 bool blockExists(int i, int j, int k, gridSize& grid);
 std::map<std::vector<int>,std::vector<std::vector<int>>> createAdjacentBlocks(gridSize& grid);
-std::tuple<std::vector<Particle>, std::map<std::vector<int>, std::vector<Particle>>> createSubMap(std::vector<int> current_block_key, std::map<std::vector<int>, Block> particleMap, std::vector<std::vector<int>> adjacent_blocks);
+std::tuple<std::shared_ptr<std::vector<Particle>>, std::vector<Block> > createSubMap(std::vector<int> current_block_key, std::vector<Block>& particleMap, std::vector<std::vector<int>> adjacent_blocks);
 double calculateNorm(const std::vector<double>& particlei, const std::vector<double>& particlej);
 double transformDensity(double density, const SimulationData& data);
 std::vector<double> transferAcceleration(Particle& particlei, Particle& particlej, double dist, const SimulationData& data);
@@ -32,6 +32,6 @@ void removeParticlesFromBlock(std::shared_ptr<std::vector<Particle>>& old_block_
 void updateParticleBlockBelonging(std::vector<int>old_block_index, Particle& particle, std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap, SimulationData& data);
 void updateParticle(std::vector<int>block_index, Particle& particle, SimulationData data);
 void establishParticleFunctionality(std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap, gridSize& grid);
-int processSimulation(std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap, SimulationData& data);
+int processSimulation(std::vector<Block>& particleMap, SimulationData& data);
 
 #endif  // FLUID_PROCESSSIMULATION_HPP

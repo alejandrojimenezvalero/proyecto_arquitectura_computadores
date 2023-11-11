@@ -19,14 +19,14 @@
 
 using namespace simulationConstants;
 
-std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> createMap(SimulationData data) {
-    std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> initMap;
+std::vector<Block> createMap(SimulationData data) {
+    std::vector<Block> initMap;
     for (int i = 0; i < data.grid.nx; ++i) {
         for (int j = 0; j < data.grid.ny; ++j) {
             for (int k = 0; k < data.grid.nz; ++k) {
                 Block block = createBlock(i, j, k);
                 block.block_particles = initializeBlockParticles();
-                initMap[block.block_index] = block.block_particles;
+                initMap.emplace_back(block);
             }
         }
     }
@@ -60,11 +60,9 @@ SimulationData calculateParameters(double ppm, int np) {
   std::cout << "Block size: " << block_dimensions[0] << " x " << block_dimensions[1] << " x " << block_dimensions[2] << '\n';
   return data;
 }
-std::tuple< int, std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> > setParticleData(const std::string& inputFile, SimulationData data){
+std::tuple< int, std::vector<Block> > setParticleData(const std::string& inputFile, SimulationData data){
     std::ifstream input_file = openFile(inputFile);
-    //std::map<std::vector<int>, std::unordered_map<int, Particle>> particleMap;
-    std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> particleMap = createMap(data);
-    //std::cout << "Particle Map: " << particleMap.size() << '\n';
+    std::vector<Block> particleMap = createMap(data);
     int real_particles = 0;
     input_file.seekg(8,std::ios::beg);
     while(!input_file.eof()){
@@ -83,8 +81,11 @@ std::tuple< int, std::map<std::vector<int>, std::shared_ptr<std::vector<Particle
           break;
         }
         particle.id = real_particles;
-
-        particleMap[particle_block_index]->push_back(particle);
+        for (Block& block:particleMap){
+            if (block.block_index == particle_block_index){
+                block.block_particles->push_back(particle);
+            }
+        }
 
         ++real_particles;
         }
@@ -106,10 +107,8 @@ int initiateSimulation(const std::string& n_iterations, const std::string& input
     SimulationData data = calculateParameters(ppm, np);
     //Debemos llamar a la función que guarda los parámetros de las partículas
     int real_particles;
-    std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> particleMap;
+    std::vector<Block> particleMap;
     std::tie(real_particles, particleMap) = setParticleData(inputFile, data);
-
-    //std::map<std::vector<int>, std::vector<Particle>> particleMap = createMap(data.grid);
 
     exceptionHandler(np != real_particles, "Error: Number of particles mismatch. Header:  "+ std::to_string(np) + ", Found: " + std::to_string(real_particles));
     for(int i=0; i< n_iterations_int; ++i){
