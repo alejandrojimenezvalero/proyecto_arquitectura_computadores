@@ -5,6 +5,6 @@
 #include "exceptionHandler.hpp"
 std::ifstream openFile(const std::string& inputFile){
   std::ifstream input_file(inputFile);
-  exceptionHandler(!input_file, "Cannot open " + inputFile + " for reading", -3);
+  exceptionHandler(!input_file, "Cannot open " + inputFile + " for reading");
   return input_file;
 }

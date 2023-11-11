@@ -101,7 +101,7 @@ int initiateSimulation(const std::string& n_iterations, const std::string& input
     int np;
     input_file.read(reinterpret_cast<char *>(&np), sizeof(int));
 
-    exceptionHandler(np < 0, "Error: Invalid number of particles: " + std::to_string(np) , -5);
+    exceptionHandler(np < 0, "Error: Invalid number of particles: " + std::to_string(np));
 
     SimulationData data = calculateParameters(ppm, np);
     //Debemos llamar a la función que guarda los parámetros de las partículas
@@ -111,7 +111,7 @@ int initiateSimulation(const std::string& n_iterations, const std::string& input
 
     //std::map<std::vector<int>, std::vector<Particle>> particleMap = createMap(data.grid);
 
-    exceptionHandler(np != real_particles, "Error: Number of particles mismatch. Header:  "+ std::to_string(np) + ", Found: " + std::to_string(real_particles)  , -5);
+    exceptionHandler(np != real_particles, "Error: Number of particles mismatch. Header:  "+ std::to_string(np) + ", Found: " + std::to_string(real_particles));
     for(int i=0; i< n_iterations_int; ++i){
       processSimulation(particleMap,data);
     }
