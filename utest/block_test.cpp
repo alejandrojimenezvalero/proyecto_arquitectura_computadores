@@ -8,23 +8,8 @@
 
 using namespace simulationConstants;
 
-// Test: Cálculo de tamaño de bloque con una cuadrícula no trivial
-TEST(CalculateBlockSizeTest, NonTrivialGrid) {
-  gridSize grid {10, 20, 30};
-  std::vector<double> result = calculateBlockSize(grid);
-
-  double expected_sx = (UPPER_LIMIT[0] - LOWER_LIMIT[0]) / grid.nx;
-  double expected_sy = (UPPER_LIMIT[1] - LOWER_LIMIT[1]) / grid.ny;
-  double expected_sz = (UPPER_LIMIT[2] - LOWER_LIMIT[2]) / grid.nz;
-
-  EXPECT_DOUBLE_EQ(result[0], expected_sx);
-  EXPECT_DOUBLE_EQ(result[1], expected_sy);
-  EXPECT_DOUBLE_EQ(result[2], expected_sz);
-}
-
-// Test: Cálculo de tamaño de bloque con una cuadrícula de tamaño cero
 TEST(CalculateBlockSizeTest, ZeroSizeGrid) {
-  gridSize grid {0, 0, 0};
+  gridSize grid {0, 0, 0,{}};
   std::vector<double> result = calculateBlockSize(grid);
 
   // En este caso, los resultados deberían ser cero
@@ -33,9 +18,8 @@ TEST(CalculateBlockSizeTest, ZeroSizeGrid) {
   EXPECT_DOUBLE_EQ(result[2], 0.0);
 }
 
-// Test: Cálculo de tamaño de bloque con una cuadrícula de tamaño negativo
 TEST(CalculateBlockSizeTest, NegativeSizeGrid) {
-  gridSize grid {-5, -10, -15};
+  gridSize grid {-5, -10, -15,{}};
   std::vector<double> result = calculateBlockSize(grid);
 
   // En este caso, los resultados deberían ser cero
@@ -44,9 +28,8 @@ TEST(CalculateBlockSizeTest, NegativeSizeGrid) {
   EXPECT_DOUBLE_EQ(result[2], 0.0);
 }
 
-// Test: Cálculo de tamaño de bloque con una cuadrícula de tamaño positivo
 TEST(CalculateBlockSizeTest, PositiveSizeGrid) {
-  gridSize grid {5, 10, 15};
+  gridSize grid {5, 10, 15,{}};
   std::vector<double> result = calculateBlockSize(grid);
 
   // Calcula los valores esperados

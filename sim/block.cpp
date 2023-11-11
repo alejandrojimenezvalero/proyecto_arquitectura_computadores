@@ -9,9 +9,10 @@
 using namespace simulationConstants;
 
 std::vector<double> calculateBlockSize(gridSize grid){
-    double sx = (UPPER_LIMIT[0] - LOWER_LIMIT[0])/grid.nx;
-    double sy = (UPPER_LIMIT[1] - LOWER_LIMIT[1])/grid.ny;
-    double sz = (UPPER_LIMIT[2] - LOWER_LIMIT[2])/grid.nz;
+  double sx = 0,sy = 0,sz = 0;
+    if(grid.nx >0){sx = (UPPER_LIMIT[0] - LOWER_LIMIT[0])/grid.nx;}
+    if(grid.ny >0){sy = (UPPER_LIMIT[1] - LOWER_LIMIT[1])/grid.ny;}
+    if(grid.nz >0){sz = (UPPER_LIMIT[2] - LOWER_LIMIT[2])/grid.nz;}
     std::vector<double> block_dimensions = {sx, sy, sz};
     return block_dimensions;
 };
