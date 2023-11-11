@@ -15,10 +15,9 @@
 
 struct SimulationData{
     gridSize grid;
-    std::vector<double> block_dimensions{};
     double smoothing_length;
     double particle_mass;
-    bool all_particles_density_updated = false;
+    bool all_particles_density_updated;
 };
 std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> createMap(SimulationData data);
 int checkBlockIndex(int &i, int &j, int &k, SimulationData data);

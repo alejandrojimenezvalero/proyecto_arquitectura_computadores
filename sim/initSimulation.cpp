@@ -36,11 +36,11 @@ std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> createMap(Sim
 
 int checkBlockIndex(int &i, int &j, int &k, SimulationData data){
   i = (i < 0)? 0:i;
-  i = (i > grid.nx-1)? data.grid.nx-1:i;
+  i = (i > data.grid.nx-1)? data.grid.nx-1:i;
   j = (j < 0)? 0:j;
-  j = (j > grid.ny-1)? data.grid.ny-1:j;
+  j = (j > data.grid.ny-1)? data.grid.ny-1:j;
   k = (k < 0)? 0:k;
-  k = (k > grid.nz-1)? data.grid.nz-1:k;
+  k = (k > data.grid.nz-1)? data.grid.nz-1:k;
   return 0;
 }
 SimulationData calculateParameters(double ppm, int np) {
@@ -49,8 +49,8 @@ SimulationData calculateParameters(double ppm, int np) {
 
   gridSize grid = calculateGridSize(smoothing_length);
   std::vector<double> block_dimensions = calculateBlockSize(grid);
-
-  SimulationData data{grid, block_dimensions, smoothing_length, particle_mass};
+  grid.block_dimensions = block_dimensions;
+  SimulationData data{grid, smoothing_length, particle_mass, false};
   std::cout << "Number of particles: " << np << '\n';
   std::cout << "Particles per meter: " << ppm << '\n';
   std::cout << "Smoothing length: " << smoothing_length << '\n';
@@ -63,7 +63,7 @@ SimulationData calculateParameters(double ppm, int np) {
 std::tuple< int, std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> > setParticleData(const std::string& inputFile, SimulationData data){
     std::ifstream input_file = openFile(inputFile);
     //std::map<std::vector<int>, std::unordered_map<int, Particle>> particleMap;
-    std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> particleMap = createMap(data.grid);
+    std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> particleMap = createMap(data);
     //std::cout << "Particle Map: " << particleMap.size() << '\n';
     int real_particles = 0;
     input_file.seekg(8,std::ios::beg);
@@ -75,16 +75,14 @@ std::tuple< int, std::map<std::vector<int>, std::shared_ptr<std::vector<Particle
           *field = static_cast<double>(floatField);
         }
         //Calculamos los indices
-        std::vector<int> particle_block_index = calcParticleIndex(particle, data.block_dimensions);
+        std::vector<int> particle_block_index = calcParticleIndex(particle, data.grid.block_dimensions);
 
-        gridSize grid = data.grid;
-        checkBlockIndex(particle_block_index[0], particle_block_index[1], particle_block_index[2], grid);
+        checkBlockIndex(particle_block_index[0], particle_block_index[1], particle_block_index[2], data);
         //std::cout << "Particle index:" << particle.i << " " << particle.j << " " << particle.k << " " << '\n';
         if (input_file.eof()) {
           break;
         }
         particle.id = real_particles;
-        //std::cout << particle.id << '\n';
 
         particleMap[particle_block_index]->push_back(particle);
 

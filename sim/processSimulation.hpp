@@ -28,8 +28,9 @@ double calcAcceleration(Particle& particle, double var, double ngrid, int index)
 double updatePosition(Particle& particle, int index);
 double updateVelocity(Particle& particle, int index);
 double updateHv(Particle& particle, int index);
+void removeParticlesFromBlock(std::shared_ptr<std::vector<Particle>>& old_block_particles, std::vector<Particle>& particles_to_remove);
 void updateParticleBlockBelonging(std::vector<int>old_block_index, Particle& particle, std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap, SimulationData& data);
-void updateParticle(std::vector<int>block_index, Particle& particle, std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap, gridSize& grid);
+void updateParticle(std::vector<int>block_index, Particle& particle, SimulationData data);
 void establishParticleFunctionality(std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap, gridSize& grid);
 int processSimulation(std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap, SimulationData& data);
 

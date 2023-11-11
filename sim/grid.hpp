@@ -10,7 +10,7 @@ struct gridSize{
     double nx;
     double ny;
     double nz;
-    std::vector<double> block_dimensions{};
+    std::vector<double> block_dimensions;
 };
 
 gridSize calculateGridSize(double smoothing_length);

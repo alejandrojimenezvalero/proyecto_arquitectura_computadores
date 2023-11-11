@@ -174,7 +174,7 @@ void updateBlock2(std::shared_ptr<std::vector<Particle>> current_block_particles
                         if (pow(norm, 2) < pow(h, 2)) {
                             //if (particle.id ==204){cout << "ACC Particle before: " << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';}
                             //if (adj_particle.id == 204){cout << "ACC Adj_Particle before: " << adj_particle.acceleration[0] << ", " << adj_particle.acceleration[1] << ", " << adj_particle.acceleration[2] << '\n';}
-                            if (particle.id ==204 or adj_particle.id == 204){
+                            if (particle.id ==2002 or adj_particle.id == 2002){
                                 //cout << "BEFORE Id particle: " << particle.id << " density: " << particle.density << " acc: " << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';
                                 //cout << "BEFORE Id adj_particle: " << adj_particle.id << " density: " << adj_particle.density << " acc: " << adj_particle.acceleration[0] << ", " << adj_particle.acceleration[1] << ", " << adj_particle.acceleration[2] << '\n';
                             }
@@ -182,7 +182,7 @@ void updateBlock2(std::shared_ptr<std::vector<Particle>> current_block_particles
                             std::vector<double> transfered_acceleration = transferAcceleration(particle, adj_particle, dist, data);
                             particle.acceleration = {particle.acceleration[0] + transfered_acceleration[0],particle.acceleration[1] + transfered_acceleration[1],particle.acceleration[2] + transfered_acceleration[2]};
                             adj_particle.acceleration = {adj_particle.acceleration[0] - transfered_acceleration[0],adj_particle.acceleration[1] - transfered_acceleration[1],adj_particle.acceleration[2] - transfered_acceleration[2]};
-                            if (particle.id ==204 or adj_particle.id == 204){
+                            if (particle.id ==2002 or adj_particle.id == 2002){
                                 //cout << "AFTER Id particle: " << particle.id << " density: " << particle.density << " acc: " << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';
                                 //cout << "AFTER Id adj_particle: " << adj_particle.id << " density: " << adj_particle.density << " acc: " << adj_particle.acceleration[0] << ", " << adj_particle.acceleration[1] << ", " << adj_particle.acceleration[2] << '\n';
                             }
@@ -199,7 +199,7 @@ void updateBlock2(std::shared_ptr<std::vector<Particle>> current_block_particles
             //cout << "Id: "<< particle.id << ", Density: " << particle.density << '\n';
             }
         particle.acceleration_updated = (mode=="acceleration")?true:false;
-        if (particle.id == 204){
+        if (particle.id == 2002){
             cout << "Id: "<< particle.id << ", Density: " << particle.density << '\n';
             cout << "Pos: " << particle.px << ", " << particle.py << ", " << particle.pz << '\n';
             cout << "ACC: " << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';
@@ -252,7 +252,7 @@ double calcVariation(int index_block, double cordParticle, double ngrid, int ind
 }
 double calcAcceleration(Particle& particle, double var, double ngrid, int index){
     double v=0.0; double a=0.0;
-    int cordBlock;
+    int cordBlock = 0;
     a = particle.acceleration[index];
     if (index==0){v = particle.vx;}
     else if (index==1){v = particle.vy;}
@@ -318,32 +318,59 @@ double checkBorderLimits(Particle& particle, double ngrid, int index, int actual
     }
     return d;
 }
-void updateParticleBlockBelonging(std::vector<int>old_block_index, Particle& particle, std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap, SimulationData& data){
-    vector<int> new_block_particle_index{};
-    new_block_particle_index = calcParticleIndex(particle, data.block_dimensions);
-    if (new_block_particle_index != old_block_index){
-        std::shared_ptr<std::vector<Particle>> block_particles_old;
-        std::shared_ptr<std::vector<Particle>> block_particles_new;
-        for (auto& current_block:particleMap){
-            if (new_block_particle_index == current_block.first){
-                current_block.second->emplace_back(particle);
-            }
-            else if (old_block_index == current_block.first){
-                // Eliminar Particle de current_block.second
-
+void removeParticlesFromBlock(std::shared_ptr<std::vector<Particle>>& old_block_particles, std::vector<Particle>& particles_to_remove){
+    old_block_particles->erase(
+            std::remove_if(
+                    old_block_particles->begin(),
+                    old_block_particles->end(),
+                    [&particles_to_remove](const Particle& particle) {
+                        // Verificar si la partícula está en la lista de partículas a ser eliminadas
+                        return std::find(particles_to_remove.begin(), particles_to_remove.end(), particle) != particles_to_remove.end();
+                    }
+            ),
+            old_block_particles->end());
+}
+void updateParticleBlockBelonging(std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap, SimulationData& data){
+    vector<int> new_block_particle_index;
+    std::vector<int>old_block_index;
+    std::vector<int>check_block_index{1,0,7};
+    std::shared_ptr<std::vector<Particle>> old_block_particles;
+    for(auto& current_block:particleMap){
+        old_block_index = current_block.first;
+        old_block_particles = current_block.second;
+        std::vector<Particle> particles_to_remove;
+        for (Particle& particle: *old_block_particles){
+            new_block_particle_index = calcParticleIndex(particle, data.grid.block_dimensions);
+            if (new_block_particle_index != old_block_index){
+                cout << "here " << particle.id <<'\n';
+                std::shared_ptr<std::vector<Particle>> new_block_particles;
+                new_block_particles = particleMap[new_block_particle_index];
+                // añadir a new_block_particles
+                new_block_particles->emplace_back(particle);
+                // eliminar de old_block_particles
+                particles_to_remove.push_back(particle);
             }
         }
+        removeParticlesFromBlock(old_block_particles, particles_to_remove);
     }
 }
-void updateParticle(std::vector<int>block_index, Particle& particle, std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap, gridSize& grid){
-    std::vector<double> cords{0.0, 0.0, 0.0}, vars{0.0, 0.0, 0.0};
+void updateParticle(std::vector<int>block_index, Particle& particle, SimulationData data){
+    double cord, var;
     std::vector<double> pos{0.0, 0.0, 0.0}, v{0.0, 0.0, 0.0}, hv{0.0, 0.0, 0.0};
     double minVar = pow(10,-10);
-    std::vector<double> ngrids{grid.nx, grid.ny, grid.nz};
+    std::vector<double> ngrids{data.grid.nx, data.grid.ny, data.grid.nz};
+    if (particle.id == 2002) {
+        cout << "---------------------------------" << '\n';
+        cout << "Pos before update: "  << particle.px << ", " << particle.py << ", " << particle.pz << '\n';
+        cout << "Hv before update: "  << particle.hvx << ", " << particle.hvy << ", " << particle.hvz << '\n';
+        cout << "V before update: "  << particle.vx << ", " << particle.vy << ", " << particle.vz << '\n';
+        cout << "Acc before update: "  << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';
+        cout << "---------------------------------" << '\n';
+    }
     for(int i=0; i < 3 ; ++i){
-        cords[i] = calcCord(particle, i);
-        vars[i] = calcVariation(block_index[i], cords[i], ngrids[i], i);
-        particle.acceleration[i] = (vars[i]>minVar) ? calcAcceleration(particle, vars[i], ngrids[i], i) : particle.acceleration[i];
+        cord = calcCord(particle, i);
+        var = calcVariation(block_index[i], cord, ngrids[i], i);
+        if (var>minVar) {particle.acceleration[i] = calcAcceleration(particle, var, ngrids[i], i);}
         pos[i] = updatePosition(particle, i);
         v[i] = updateVelocity(particle, i);
         hv[i] = updateHv(particle, i);
@@ -352,19 +379,27 @@ void updateParticle(std::vector<int>block_index, Particle& particle, std::map<st
         else if (i==2){particle.pz = pos[i],particle.vz = v[i],particle.hvz = hv[i];}
         checkBorderLimits(particle, ngrids[i], i, block_index[i]);
     }
-    updateParticleBlockBelonging(block_index, particle, particleMap, data);
+    if (particle.id == 2002) {
+        cout << "Pos after update: "  << particle.px << ", " << particle.py << ", " << particle.pz << '\n';
+        cout << "Hv after update: "  << particle.hvx << ", " << particle.hvy << ", " << particle.hvz << '\n';
+        cout << "V after update: "  << particle.vx << ", " << particle.vy << ", " << particle.vz << '\n';
+        cout << "Acc after update: "  << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';
+        cout << "---------------------------------" << '\n';
+    }
 }
 
-void establishParticleFunctionality(std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap, gridSize& grid){
+void establishParticleFunctionality(std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap, SimulationData data){
     std::vector<int>block_index;
     std::shared_ptr<std::vector<Particle>> block_particles;
     for(auto block:particleMap){
         block_index = block.first;
         block_particles = block.second;
         for (Particle& particle: *block_particles){
-            updateParticle(block_index, particle, particleMap, grid);
+            updateParticle(block_index, particle, data);
         }
     }
+    updateParticleBlockBelonging(particleMap, data);
+    cout << "here-4" << '\n';
 }
 
 
@@ -390,7 +425,8 @@ int processSimulation(std::map<std::vector<int>, std::shared_ptr<std::vector<Par
         modifyBlock(current_block_key, particleMap, adjacent_blocks, data);
     }
     data.all_particles_density_updated = false;
+    establishParticleFunctionality(particleMap, data);
     initializeDensityAcceleration(particleMap);
-    establishParticleFunctionality(particleMap, data.grid);
+
     return 0;
 }
