@@ -4,10 +4,9 @@
 #include "grid.hpp"
 #include "particle.hpp"
 
+#include <memory>
+
 using namespace simulationConstants;
-
-
-
 
 std::vector<double> calculateBlockSize(gridSize grid){
     double sx = (UPPER_LIMIT[0] - LOWER_LIMIT[0])/grid.nx;
@@ -17,14 +16,25 @@ std::vector<double> calculateBlockSize(gridSize grid){
     return block_dimensions;
 };
 
+std::shared_ptr<std::vector<Particle>> initializeBlockParticles() {
+    return std::make_shared<std::vector<Particle>>();
+}
 
-Block createBlock(int i, int j, int k){
-    Block block {{0,0,0}, {}};
-    block.block_index[0] = i; block.block_index[1] = j, block.block_index[2] = k;
+void insertParticle(Block& block, const Particle& particle) {
+    if (!block.block_particles) {
+        // Si el vector de partículas no ha sido inicializado o está vacío, inicializarlo ahora.
+        block.block_particles = initializeBlockParticles();
+    }
+    // Agregar la partícula al vector de partículas
+    block.block_particles->push_back(particle);
+}
+
+Block createBlock(int i, int j, int k) {
+    Block block {{i, j, k}, nullptr};  // Inicializar con un puntero nulo
     return block;
 }
 
-std::vector<int> calcParticleIndex(Particle particle, std::vector<double> block_dimensions){
+std::vector<int> calcParticleIndex(Particle& particle, std::vector<double> block_dimensions){
     std::vector<int> particle_block_index{};
     int i, j, k;
     i = std::floor((particle.px - LOWER_LIMIT[0])/block_dimensions[0]);

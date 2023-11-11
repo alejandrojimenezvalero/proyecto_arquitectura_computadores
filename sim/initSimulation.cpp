@@ -15,29 +15,32 @@
 #include <stdexcept>
 #include <map>
 #include <tuple>
+#include <memory>
 
 using namespace simulationConstants;
 
-std::map<std::vector<int>, Block> createMap(gridSize grid){
-    std::map<std::vector<int>, Block>  initMap;
-    for (int i =0; i < grid.nx; ++i) {
-        for (int j=0; j < grid.ny; ++j) {
-            for (int k=0; k < grid.nz; ++k){
+std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> createMap(SimulationData data) {
+    std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> initMap;
+    for (int i = 0; i < data.grid.nx; ++i) {
+        for (int j = 0; j < data.grid.ny; ++j) {
+            for (int k = 0; k < data.grid.nz; ++k) {
                 Block block = createBlock(i, j, k);
-                initMap[block.block_index] = block;
+                block.block_particles = initializeBlockParticles();
+                initMap[block.block_index] = block.block_particles;
             }
         }
     }
     return initMap;
 }
 
-int checkBlockIndex(int &i, int &j, int &k, gridSize grid){
+
+int checkBlockIndex(int &i, int &j, int &k, SimulationData data){
   i = (i < 0)? 0:i;
-  i = (i > grid.nx-1)? grid.nx-1:i;
+  i = (i > grid.nx-1)? data.grid.nx-1:i;
   j = (j < 0)? 0:j;
-  j = (j > grid.ny-1)? grid.ny-1:j;
+  j = (j > grid.ny-1)? data.grid.ny-1:j;
   k = (k < 0)? 0:k;
-  k = (k > grid.nz-1)? grid.nz-1:k;
+  k = (k > grid.nz-1)? data.grid.nz-1:k;
   return 0;
 }
 SimulationData calculateParameters(double ppm, int np) {
@@ -57,10 +60,10 @@ SimulationData calculateParameters(double ppm, int np) {
   std::cout << "Block size: " << block_dimensions[0] << " x " << block_dimensions[1] << " x " << block_dimensions[2] << '\n';
   return data;
 }
-std::tuple< int, std::map<std::vector<int>, Block>  > setParticleData(const std::string& inputFile, SimulationData data){
+std::tuple< int, std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> > setParticleData(const std::string& inputFile, SimulationData data){
     std::ifstream input_file = openFile(inputFile);
     //std::map<std::vector<int>, std::unordered_map<int, Particle>> particleMap;
-    std::map<std::vector<int>, Block> particleMap = createMap(data.grid);
+    std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> particleMap = createMap(data.grid);
     //std::cout << "Particle Map: " << particleMap.size() << '\n';
     int real_particles = 0;
     input_file.seekg(8,std::ios::beg);
@@ -80,38 +83,13 @@ std::tuple< int, std::map<std::vector<int>, Block>  > setParticleData(const std:
         if (input_file.eof()) {
           break;
         }
-        particleMap[particle_block_index].block_particles.push_back(particle);
         particle.id = real_particles;
+        //std::cout << particle.id << '\n';
+
+        particleMap[particle_block_index]->push_back(particle);
+
         ++real_particles;
         }
-        /* COMPROBAMOS QUE EL MAPA ESTÁ BIEN CREADO, VIENDO QUE EN CADA BLOQUE HAY X PARTICULAS Y VIENDO QUE EL NÚ,ERO TOTAL ES EXACTAMENTE 4800
-        int contador = 0;
-        for(auto &keyValue: particleMap){
-        std::vector<int> key = keyValue.first;
-        std::vector<Particle> particles = keyValue.second;
-        //std::cout << "Bloque de indices " << "i: "<< key[0] << " j: "<< key[1] << " k: " << key[2] << '\n' << " => Particulas del bloque: "<< '\n';
-        //std::cout << "Número de partículas de bloque: " << particles.size() << '\n';
-        contador += particles.size();
-        for (Particle particle : particles) {
-          std::cout << "Partícula: " << particle.px << "," << '\n';
-        }
-        }
-        std::cout << "Numero de particulas total: " << contador << '\n';
-        */
-        /*
-        << "px: " << particula2.px << "\n"
-        << "py: " << particula2.py << "\n"
-        << "pz: " << particula2.pz << "\n"
-        << "hvx: " << particula2.hvx << "\n"
-        << "hvy: " << particula2.hvy << "\n"
-        << "hvz: " << particula2.hvz << "\n"
-        << "vx: " << particula2.vx << "\n"
-        << "vy: " << particula2.vy << "\n"
-        << "vz: " << particula2.vz << "\n"
-        << "i: " << particula2.i << "\n"
-        << "j: " << particula2.j << "\n"
-        << "k: " << particula2.k << std::endl;
-        */
     return std::make_tuple(real_particles, particleMap);
 }
 
@@ -130,14 +108,14 @@ int initiateSimulation(const std::string& n_iterations, const std::string& input
     SimulationData data = calculateParameters(ppm, np);
     //Debemos llamar a la función que guarda los parámetros de las partículas
     int real_particles;
-    std::map<std::vector<int>, Block> particleMap;
+    std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> particleMap;
     std::tie(real_particles, particleMap) = setParticleData(inputFile, data);
 
     //std::map<std::vector<int>, std::vector<Particle>> particleMap = createMap(data.grid);
 
     exceptionHandler(np != real_particles, "Error: Number of particles mismatch. Header:  "+ std::to_string(np) + ", Found: " + std::to_string(real_particles)  , -5);
     for(int i=0; i< n_iterations_int; ++i){
-      //processSimulation(particleMap,data);
+      processSimulation(particleMap,data);
     }
     return 0;
 }
