@@ -10,7 +10,7 @@ using namespace simulationConstants;
 
 // Test: Cálculo de tamaño de bloque con una cuadrícula no trivial
 TEST(CalculateBlockSizeTest, NonTrivialGrid) {
-  gridSize grid {10, 20, 30};
+  Grid grid {10, 20, 30};
   std::vector<double> result = calculateBlockSize(grid);
 
   double expected_sx = (UPPER_LIMIT[0] - LOWER_LIMIT[0]) / grid.nx;
@@ -24,7 +24,7 @@ TEST(CalculateBlockSizeTest, NonTrivialGrid) {
 
 // Test: Cálculo de tamaño de bloque con una cuadrícula de tamaño cero
 TEST(CalculateBlockSizeTest, ZeroSizeGrid) {
-  gridSize grid {0, 0, 0};
+  Grid grid {0, 0, 0};
   std::vector<double> result = calculateBlockSize(grid);
 
   // En este caso, los resultados deberían ser cero
@@ -35,7 +35,7 @@ TEST(CalculateBlockSizeTest, ZeroSizeGrid) {
 
 // Test: Cálculo de tamaño de bloque con una cuadrícula de tamaño negativo
 TEST(CalculateBlockSizeTest, NegativeSizeGrid) {
-  gridSize grid {-5, -10, -15};
+  Grid grid {-5, -10, -15};
   std::vector<double> result = calculateBlockSize(grid);
 
   // En este caso, los resultados deberían ser cero
@@ -46,7 +46,7 @@ TEST(CalculateBlockSizeTest, NegativeSizeGrid) {
 
 // Test: Cálculo de tamaño de bloque con una cuadrícula de tamaño positivo
 TEST(CalculateBlockSizeTest, PositiveSizeGrid) {
-  gridSize grid {5, 10, 15};
+  Grid grid {5, 10, 15};
   std::vector<double> result = calculateBlockSize(grid);
 
   // Calcula los valores esperados

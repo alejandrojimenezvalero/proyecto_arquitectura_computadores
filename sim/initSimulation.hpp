@@ -14,16 +14,19 @@
 #include <memory>
 
 struct SimulationData{
-    gridSize grid;
+    Grid& grid;
     double smoothing_length;
     double particle_mass;
     bool all_particles_density_updated;
+
+    SimulationData(Grid& initialGrid)
+            :grid(initialGrid), smoothing_length(0.0), particle_mass(0.0), all_particles_density_updated(false) {}
 };
 
-std::vector<Block> createMap(SimulationData data);
-int checkBlockIndex(int &i, int &j, int &k, SimulationData data);
-SimulationData calculateParameters(double ppm, int np);
-std::tuple< int, std::vector<Block> > setParticleData(const std::string& inputFile, SimulationData data);
+void createMap(Grid& grid);
+int checkBlockIndex(int &i, int &j, int &k, Grid& grid);
+void calculateParameters(double ppm, int np, SimulationData& data);
+int setParticleData(const std::string& inputFile, SimulationData& data);
 int initiateSimulation(const std::string& n_iterations, const std::string& inputFile);
 
 #endif  // FLUID_INITSIMULATION_HPP
