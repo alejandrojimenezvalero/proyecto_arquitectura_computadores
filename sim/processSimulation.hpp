@@ -12,25 +12,26 @@
 #include <string>
 
 bool blockExists(int i, int j, int k, Grid& grid);
-void createAdjacentBlocks(Grid& grid, std::map<std::vector<int>,SubGrid>& adjacentBlocks);
+//std::map<std::vector<int>,std::vector<std::vector<int>>> createAdjacentBlocks(Grid& grid);
 double calculateNorm(const std::vector<double>& particlei, const std::vector<double>& particlej);
 void transformDensity(Particle& particle, const SimulationData& data);
 std::vector<double> transferAcceleration(Particle& particlei, Particle& particlej, double dist, const SimulationData& data);
 //void updateBlock(std::vector<Particle> current_block_particles, std::map<std::vector<int>, std::vector<Particle>> particleSubMap, SimulationData data, std::string mode);
 void initializeDensityAcceleration(SimulationData& data);
-void updateBlock2(Block& current_block, std::map<std::vector<int>, SubGrid >& adjacent_blocks_map, SimulationData& data, std::string mode);
-int modifyBlock(Block& current_block, std::map<std::vector<int>, SubGrid >& adjacent_blocks_map, SimulationData& data);
+void updateBlocks(SimulationData& data, std::string mode);
+//void updateBlock2(SubGrid& particleSubMap , SimulationData& data, std::string mode);
+//int modifyBlock(Block& current_block, std::map<std::vector<int>, std::vector<std::vector<int>>>& adjacent_blocks_map, SimulationData& data);
 double calcCord(Particle& particle, int index);
 double calcVariation(int index_block, double cordParticle, double ngrid, int index);
-double calcAcceleration(Particle& particle, double var, double ngrid, int index);
-//void calcCollision(std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap, Grid& grid);
+double calcAcceleration(Particle& particle, double var, SimulationData data, int index);
+//void calcCollision(std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& grid_blocks, Grid& grid);
 double updatePosition(Particle& particle, int index);
 double updateVelocity(Particle& particle, int index);
 double updateHv(Particle& particle, int index);
-void removeParticlesFromBlock(std::shared_ptr<std::vector<Particle>>& old_block_particles, std::vector<Particle>& particles_to_remove);
-void updateParticleBlockBelonging(std::vector<int>old_block_index, Particle& particle, std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap, SimulationData& data);
-void updateParticle(std::vector<int>block_index, Particle& particle, SimulationData data);
-void establishParticleFunctionality(std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>>& particleMap, Grid& grid);
+void removeParticlesFromBlock(Block& block, std::vector<Particle>& particles_to_remove);
+void updateParticleBlockBelonging(std::vector<Block>& particleMap, SimulationData& data);
+void updateParticle(std::vector<int>block_index, Particle& particle, SimulationData& data);
+void establishParticleFunctionality(std::vector<Block>& particleMap, SimulationData data);
 int processSimulation(SimulationData& data);
 
 #endif  // FLUID_PROCESSSIMULATION_HPP

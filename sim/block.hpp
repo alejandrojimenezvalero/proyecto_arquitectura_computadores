@@ -7,9 +7,10 @@
 struct Block{
     std::vector<int> block_index{};
     std::vector<Particle> block_particles;
+    std::vector<std::vector<int>> adj_blocks;
+    bool updated = false;
 };
 
 Block createBlock(int i, int j, int k);
-std::vector<int> calcParticleIndex(Particle& particle, std::vector<double> block_dimensions);
 
 #endif
