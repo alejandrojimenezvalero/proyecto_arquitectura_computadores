@@ -14,5 +14,4 @@ int main(int argc, char *argv[]){
     validateParameters(arguments);
     initiateSimulation(arguments[0], arguments[1]);
     cout << "fin de todo"<<'\n';
-    return 0;
 }

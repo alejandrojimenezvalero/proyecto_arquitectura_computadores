@@ -5,6 +5,5 @@
 #include <iostream>
 #include <string>
 
-int exceptionHandler(bool condition, const std::string& errorMessage);
-void throwException(const std::string& errorMessage);
+void throwException(const std::string& errorMessage, int exitCode);
 #endif

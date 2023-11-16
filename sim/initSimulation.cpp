@@ -131,28 +131,35 @@ int setParticleData(const std::string& inputFile, SimulationData& data){
 
 int initiateSimulation(const std::string& n_iterations, const std::string& inputFile) {
     std::ifstream input_file = openFile(inputFile);
+    if(!input_file){throwException("Cannot open " + inputFile + " for reading", -3);}
     int n_iterations_int = std::stoi(n_iterations);
-    //double doubleNumber = static_cast<double>(floatNumber);
+    // double doubleNumber = static_cast<double>(floatNumber);
     float ppmFloat;
     input_file.read(reinterpret_cast<char *>(&ppmFloat), sizeof(float));
     double ppm = static_cast<double>(ppmFloat);
     int np;
     input_file.read(reinterpret_cast<char *>(&np), sizeof(int));
 
-    exceptionHandler(np < 0, "Error: Invalid number of particles: " + std::to_string(np));
+    if (np < 0) {
+        throwException("Error: Invalid number of particles: " + std::to_string(np), -5);
+    }
     Grid grid;
     SimulationData data(grid);
-    calculateParameters(ppm, np,data);
-    //Debemos llamar a la función que guarda los parámetros de las partículas
+    calculateParameters(ppm, np, data);
+    // Debemos llamar a la función que guarda los parámetros de las partículas
     int real_particles;
     real_particles = setParticleData(inputFile, data);
 
-    exceptionHandler(np != real_particles, "Error: Number of particles mismatch. Header:  "+ std::to_string(np) + ", Found: " + std::to_string(real_particles));
+    if (np != real_particles) {
+        throwException("Error: Number of particles mismatch. Header:  " + std::to_string(np) +
+                           ", Found: " + std::to_string(real_particles),
+                       -5);
+    }
     int c = 0;
-    for(int i=0; i< n_iterations_int; ++i){
-      processSimulation(data);
-      std::cout << c <<'\n';
-      c+=1;
+    for (int i = 0; i < n_iterations_int; ++i) {
+        processSimulation(data);
+        std::cout << c << '\n';
+        c += 1;
     }
     return 0;
-}
+  }

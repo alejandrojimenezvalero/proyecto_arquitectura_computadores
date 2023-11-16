@@ -3,25 +3,75 @@
 #include "gtest/gtest.h"
 #include "./sim/progargs.hpp"  // Reemplaza con el nombre de tu archivo que contiene validateParameters
 
+#include <fstream>
+#include <iostream>
 #include <stdexcept>
 #include <filesystem>
+#include <sstream>
 
+using namespace testing;
+
+std::string getFileContent(const std::string& filename) {
+  std::ifstream file(filename);
+  if (file.is_open()) {
+    std::ostringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+  } else {
+    return "";  // Return an empty string if there was an issue opening the file
+  }
+}
 //Valid Test
 TEST(ValidateParametersTest, ValidArguments) {
   std::vector<std::string> args = {"2000", "../../small.fld", "../../final.fld"};
-  EXPECT_NO_THROW(validateParameters(args));
-}
+  std::stringstream captured_stderr;
+  std::streambuf* old_stderr = std::cerr.rdbuf(captured_stderr.rdbuf());
 
-//Invalid Test: number of arguments must be 3
+  int exit_code = validateParameters(args);
+  EXPECT_EQ(exit_code, 0);
+
+  std::cerr.rdbuf(old_stderr);
+  std::string captured_message = captured_stderr.str();
+  EXPECT_TRUE(captured_message.empty());
+}
+// Invalid Test: number of arguments must be 3
+// Invalid Test: number of arguments must be 3
+/*
 TEST(ValidateParametersTest, InvalidNumberOfArgumentsLessThanThree) {
   std::vector<std::string> args = {};
-  try {
-    validateParameters(args);
-  }
-  catch (const std::runtime_error& e){
-    std::string expected_error_message = "Error: Invalid number of arguments: " + std::to_string(args.size()) + ".";
-    EXPECT_STREQ(expected_error_message.c_str(), e.what());
-  }
+  // Check exit code
+  EXPECT_EXIT(validateParameters(args),::testing::ExitedWithCode(255),".*");
+}*/
+
+// Invalid Test: number of arguments must be 3
+TEST(ValidateParametersTest, InvalidNumberOfArgumentsLessThanThree) {
+  std::vector<std::string> args = {};
+
+  // Create a temporary file to capture stderr
+  const std::string temp_filename = "temp_stderr.txt";
+  std::ofstream temp_file(temp_filename);
+
+  // Redirect stderr to the temporary file
+  std::streambuf* original_stderr = std::cerr.rdbuf(temp_file.rdbuf());
+
+  // Check exit code
+  EXPECT_EXIT(validateParameters(args),::testing::ExitedWithCode(255),".*");
+
+  // Restore stderr
+  std::cerr.rdbuf(original_stderr);
+
+  temp_file.close();
+
+  // Read the captured stderr from the temporary file
+  std::string expected_error_message = "Error: Invalid number of arguments: " + std::to_string(args.size()) + ".";
+  std::string captured_message = getFileContent(temp_filename);
+  captured_message.erase(std::remove(captured_message.begin(), captured_message.end(), '\n'), captured_message.end());
+
+  // Check if the expected error message is equal to the captured message
+  EXPECT_EQ(expected_error_message, captured_message);
+
+  // Remove the temporary file
+  std::filesystem::remove(temp_filename);
 }
 
 //Invalid Test: number of arguments must be 4
@@ -72,14 +122,14 @@ TEST(ValidateParametersTest, InvalidInputFile) {
   }
 }
 
-//Invalid Test: invalid input file.
+//Invalid Test: output input file.
 TEST(ValidateParametersTest, InvalidOutputFile) {
   std::vector<std::string> args = {"2000",  "../../small.fld", "output.txt"};
   try {
     validateParameters(args);
   }
   catch (const std::runtime_error& e){
-    std::string expected_error_message = "Cannot open " + args[1]+  " for reading";
+    std::string expected_error_message = "Cannot open " + args[2]+  " for reading";
     EXPECT_STREQ(expected_error_message.c_str(), e.what());
   }
 }
