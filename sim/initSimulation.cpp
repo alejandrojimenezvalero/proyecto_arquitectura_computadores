@@ -13,6 +13,7 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
+#include <chrono>
 #include <map>
 #include <tuple>
 #include <memory>
@@ -58,6 +59,7 @@ void createGridBlocks(Grid& grid) {
                             int target_i = i + di;
                             int target_j = j + dj;
                             int target_k = k + dk;
+
                             if (blockExists(target_i, target_j, target_k, grid)) {
                                 // Agregar las coordenadas del bloque adyacente al vector
                                 block.adj_blocks.push_back({target_i, target_j, target_k});
@@ -130,6 +132,7 @@ int setParticleData(const std::string& inputFile, SimulationData& data){
 }
 
 int initiateSimulation(const std::string& n_iterations, const std::string& inputFile) {
+    auto start = std::chrono::high_resolution_clock::now();
     std::ifstream input_file = openFile(inputFile);
     if(!input_file){throwException("Cannot open " + inputFile + " for reading", -3);}
     int n_iterations_int = std::stoi(n_iterations);
@@ -155,11 +158,16 @@ int initiateSimulation(const std::string& n_iterations, const std::string& input
                            ", Found: " + std::to_string(real_particles),
                        -5);
     }
-    int c = 0;
+    //int c = 0;
     for (int i = 0; i < n_iterations_int; ++i) {
         processSimulation(data);
-        std::cout << c << '\n';
-        c += 1;
+        //std::cout << "----" << '\n';
+        //std::cout << c << '\n';
+        //std::cout << "----" << '\n';
+        //c += 1;
     }
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    std::cout << duration.count()/1000000 << '\n';
     return 0;
   }

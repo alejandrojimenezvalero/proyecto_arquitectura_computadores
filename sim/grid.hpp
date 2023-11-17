@@ -13,7 +13,6 @@ struct Grid{
     std::vector<double> grid_dimensions;
     std::vector<double> block_dimensions;
     std::map<std::vector<int>,Block> grid_blocks;
-
 };
 
 
