@@ -46,21 +46,6 @@ void createAdjacentBlocks(Grid& grid) {
         }
     }
     return adjacentBlocks;
-}
-void createSubMap(Grid& grid, vector<vector<int>> adjacent_blocks, SubGrid& particleSubMap){
-    //cout << "-------------------------" << '\n';
-    //cout << current_block_key[0] << ", " << current_block_key[1] << ", " << current_block_key[2] << '\n';
-    //cout << "-------------------------" << '\n';
-    std::vector<std::reference_wrapper<Block>> insert_wrapper{};
-    for (auto& adj_block_key: adjacent_blocks){
-        for (auto& adj_block: grid.grid_blocks){
-            if (adj_block_key == adj_block.block_index){
-                insert_wrapper.emplace_back(std::ref(adj_block));
-            }
-        }
-
-    }
-    particleSubMap.particleSubMap = insert_wrapper;
 }*/
 
 double calculateNorm(const std::vector<double>& particlei, const std::vector<double>& particlej) {
@@ -88,42 +73,7 @@ void transferAcceleration(Particle& particlei, Particle& particlej, double dist,
     particlei.acceleration = {particlei.acceleration[0] + variation_acc[0],particlei.acceleration[1] + variation_acc[1],particlei.acceleration[2] + variation_acc[2]};
     particlej.acceleration = {particlej.acceleration[0] - variation_acc[0],particlej.acceleration[1] - variation_acc[1],particlej.acceleration[2] - variation_acc[2]};
 }
-/*
-void updateBlock(std::vector<Particle> current_block_particles, std::map<std::vector<int>, std::vector<Particle>> particleSubMap, SimulationData data, string mode){
-    // IMPORTANTE -> Esta función necesita que al inicio de cada iteracion de processSimulation se utilice la funcion updateDensityFalse
-    // REFACTORIZAR CON VECTORES
-    double h = data.smoothing_length;
-    double norm, dist;
-    for(Particle particle: current_block_particles){
-        for(auto block: particleSubMap){
-            vector<Particle> adj_particles = block.second;
-            for(auto adj_particle: adj_particles){
-                if (mode =="density"){
-                    if (!adj_particle.density_updated && particle != adj_particle){
-                        norm = calculateNorm({particle.px,particle.py,particle.pz}, {adj_particle.px, adj_particle.py, adj_particle.pz});
-                        if(pow(norm,2)<pow(h,2)){
-                            particle.density += pow((pow(h,2)-pow(norm,2)), 3), adj_particle.density += pow((pow(h,2)-pow(norm,2)), 3);
-                            particle.density = transformDensity(particle.density, data), adj_particle.density = transformDensity(adj_particle.density, data);
-                        }
-                    }
-                }
-                else if (mode=="acceleration"){
-                    if (particle.density_updated && adj_particle.density_updated && !adj_particle.acceleration_updated && particle != adj_particle) {
-                        if (pow(norm, 2) < pow(h, 2)) {
-                            dist = sqrt(max(pow(norm, 2), pow(10, -12)));
-                            std::vector<double> transfered_acceleration = transferAcceleration(particle, adj_particle, dist, data);
-                            particle.acceleration = {particle.acceleration[0] + transfered_acceleration[0],particle.acceleration[1] + transfered_acceleration[1],particle.acceleration[2] + transfered_acceleration[2]};
-                            adj_particle.acceleration = {adj_particle.acceleration[0] + transfered_acceleration[0],adj_particle.acceleration[1] + transfered_acceleration[1],adj_particle.acceleration[2] + transfered_acceleration[2]};
-                        }
-                    }
-                }
-            }
-            particle.density_updated = (mode=="density")?true:particle.density_updated;
-            particle.acceleration_updated = (mode=="acceleration")?true:false;
-        }
-    }
-}
- */
+
 void initializeDensityAcceleration(SimulationData& data){
     std::vector<int> block_index;
     std::shared_ptr<std::vector<Particle>> block_particles;
@@ -137,42 +87,55 @@ void initializeDensityAcceleration(SimulationData& data){
         }
     }
 }
-
-void updateBlocks(SimulationData& data, std::string mode){
+/*void updateParticle(SimulationData& data, Particle& particle, int index_adj, string mode){
     double norm_2, dist;
-    int c = 0, k = 0;
+    for(Particle& adj_particle: data.grid.grid_blocks[index_adj].block_particles){
+
+        norm_2 = calculateNorm(particle.pos, adj_particle.pos);
+        if (mode =="density"){
+            if ((adj_particle.density_updated == false) && particle.id != adj_particle.id){
+                if(norm_2<data.smoothing_length_2){
+                    //if (particle.id == 204 ){cout << "Particle: " << particle.density << '\n';}
+                    //if (adj_particle.id == 204){cout << "Adj_Particle: " << adj_particle.density << '\n';}
+                    particle.density += pow((data.smoothing_length_2-norm_2),3), adj_particle.density += pow((data.smoothing_length_2-norm_2),3);
+                }
+                else{particle.density += 0;}
+            }
+        }
+        else if (mode=="acceleration"){
+            if (particle.density_updated && adj_particle.density_updated && adj_particle.acceleration_updated == false && particle != adj_particle) {
+                if (norm_2 < data.smoothing_length_2) {
+                    dist = sqrt(max(norm_2, MINIMUM_DISTANCE));
+                    transferAcceleration(particle, adj_particle, dist, data);
+                }
+            }
+        }
+    }
+}*/
+
+void updateBlocksDensity(SimulationData& data){
+    double norm_2;
     for(auto& block: data.grid.grid_blocks){
         std::vector<Particle>& particles = block.second.block_particles;
         for (size_t i = 0; i < particles.size(); ++i){
             Particle& particle = particles[i];
             for(vector<int> index_adj:block.second.adj_blocks){
-
                 //cout << "index_adj: " << index_adj[0] << ", " << index_adj[1] << ", " << index_adj[2] << ", " <<'\n';
                 //cout << "index_block: " << block.second.block_index[0] << ", " << block.second.block_index[1] << ", " << block.second.block_index[2] << ", " <<'\n';
-                k+=1;
+                //k+=1;
                 if (index_adj != block.second.block_index){
-                    c+=1;
+                    //c+=1;
                     //if (particle.id == 204 ){cout << "Particle 204: " << particle.density << '\n';}
                     for(Particle& adj_particle: data.grid.grid_blocks[index_adj].block_particles){
-
                         norm_2 = calculateNorm(particle.pos, adj_particle.pos);
-                        if (mode =="density"){
-                            if ((adj_particle.density_updated == false) && particle.id != adj_particle.id){
-                                if(norm_2<data.smoothing_length_2){
-                                    //if (particle.id == 204 ){cout << "Particle: " << particle.density << '\n';}
-                                    //if (adj_particle.id == 204){cout << "Adj_Particle: " << adj_particle.density << '\n';}
-                                    particle.density += pow((data.smoothing_length_2-norm_2),3), adj_particle.density += pow((data.smoothing_length_2-norm_2),3);
-                                }
-                                else{particle.density += 0;}
+                        if ((adj_particle.density_updated == false) && particle.id != adj_particle.id){
+                            if(norm_2<data.smoothing_length_2){
+                                double added_norm = pow((data.smoothing_length_2-norm_2),3);
+                                //if (particle.id == 204 ){cout << "Particle: " << particle.density << '\n';}
+                                //if (adj_particle.id == 204){cout << "Adj_Particle: " << adj_particle.density << '\n';}
+                                particle.density += added_norm, adj_particle.density += added_norm;
                             }
-                        }
-                        else if (mode=="acceleration"){
-                            if (particle.density_updated && adj_particle.density_updated && adj_particle.acceleration_updated == false && particle != adj_particle) {
-                                if (norm_2 < data.smoothing_length_2) {
-                                    dist = sqrt(max(norm_2, MINIMUM_DISTANCE));
-                                    transferAcceleration(particle, adj_particle, dist, data);
-                                }
-                            }
+                            else{particle.density += 0;}
                         }
                     }
                 }
@@ -182,34 +145,23 @@ void updateBlocks(SimulationData& data, std::string mode){
                     for (size_t j = i + 1; j < particles.size(); ++j){
                         Particle& adj_particle = particles[j];
                         norm_2 = calculateNorm(particle.pos, adj_particle.pos);
-                        if (mode =="density"){
-                            if ((adj_particle.density_updated == false) && particle.id != adj_particle.id){
-                                if(norm_2<data.smoothing_length_2){
-                                    //if (particle.id == 204 ){cout << "Particle: " << particle.density << '\n';}
-                                    //if (adj_particle.id == 204){cout << "Adj_Particle: " << adj_particle.density << '\n';}
-                                    particle.density += pow((data.smoothing_length_2-norm_2),3), adj_particle.density += pow((data.smoothing_length_2-norm_2),3);
-                                }
-                                else{particle.density += 0;}
+                        if ((adj_particle.density_updated == false) && particle.id != adj_particle.id){
+                            if(norm_2<data.smoothing_length_2){
+                                double added_norm = pow((data.smoothing_length_2-norm_2),3);
+                                //if (particle.id == 204 ){cout << "Particle: " << particle.density << '\n';}
+                                //if (adj_particle.id == 204){cout << "Adj_Particle: " << adj_particle.density << '\n';}
+                                particle.density += added_norm, adj_particle.density += added_norm;
                             }
-                        }
-                        else if (mode=="acceleration"){
-                            if (particle.density_updated && adj_particle.density_updated && adj_particle.acceleration_updated == false && particle != adj_particle) {
-                                if (norm_2 < data.smoothing_length_2) {
-                                    dist = sqrt(max(norm_2, MINIMUM_DISTANCE));
-                                    transferAcceleration(particle, adj_particle, dist, data);
-                                }
-                            }
+                            else{particle.density += 0;}
                         }
                     }
                 }
             }
-            if (mode == "density"){
-                transformDensity(particle, data);
-                particle.density_updated = true;
-                particle.acceleration_updated = false;
-                //cout << "Id: "<< particle.id << ", Density: " << particle.density << '\n';
-            }
-            if (mode == "acceleration"){particle.acceleration_updated = true;}
+            transformDensity(particle, data);
+            particle.density_updated = true;
+            particle.acceleration_updated = false;
+            //cout << "Id: "<< particle.id << ", Density: " << particle.density << '\n';
+
             /*if (particle.id == 204){
                 cout << "Id: "<< particle.id << ", Density: " << particle.density << '\n';
                 cout << "Pos: " << particle.pos[0] << ", " << particle.pos[1] << ", " << particle.pos[2] << '\n';
@@ -217,84 +169,62 @@ void updateBlocks(SimulationData& data, std::string mode){
             }*/
         }
     }
-    cout << "c: " << c << '\n';
-    cout << "k: " << k << '\n';
+    data.all_particles_density_updated = true;
+    //cout << "c: " << c << '\n';
+    //cout << "k: " << k << '\n';
 }
-
-/*
-// ACTUALIZADA
-void updateBlock2(SubGrid& particleSubMap , SimulationData& data, std::string mode){
-    // REFACTORIZAR CON VECTORES
-    //cout << mode << '\n';
+void updateBlocksAcceleration(SimulationData& data){
     double norm_2, dist;
-    //check_iter=0-> USAMOS density_updated, check_iter=1-> USAMOS density_updated2
-    //el using_update_adj, usará en la ADJUNTA density_updated si estamos en check_iter=0, y usará density_updated2 si estamos en check_iter=1
-    for(Particle& particle : particleSubMap.current_block.block_particles){
-        //if (particle.id == 204){cout << 204 << " updateBlock2" << '\n';}
-        for (std::reference_wrapper<Block> refBlock  : particleSubMap.particleSubMap) {
-            Block& block = refBlock.get();
-            for(Particle& adj_particle: block.block_particles){
-                norm_2 = calculateNorm(particle.pos, adj_particle.pos);
-                if (mode =="density"){
-                    if ((adj_particle.density_updated == false) && particle.id != adj_particle.id){
-                        if(norm_2<data.smoothing_length_2){
-                            //if (particle.id == 204 ){cout << "Particle: " << particle.density << '\n';}
-                            //if (adj_particle.id == 204){cout << "Adj_Particle: " << adj_particle.density << '\n';}
-                            particle.density += pow((data.smoothing_length_2-norm_2),3), adj_particle.density += pow((data.smoothing_length_2-norm_2),3);
+    for(auto& block: data.grid.grid_blocks){
+        std::vector<Particle>& particles = block.second.block_particles;
+        for (size_t i = 0; i < particles.size(); ++i){
+            Particle& particle = particles[i];
+            for(vector<int> index_adj:block.second.adj_blocks){
+
+                //cout << "index_adj: " << index_adj[0] << ", " << index_adj[1] << ", " << index_adj[2] << ", " <<'\n';
+                //cout << "index_block: " << block.second.block_index[0] << ", " << block.second.block_index[1] << ", " << block.second.block_index[2] << ", " <<'\n';
+                //k+=1;
+                if (index_adj != block.second.block_index){
+                    //c+=1;
+                    //if (particle.id == 204 ){cout << "Particle 204: " << particle.density << '\n';}
+                    for(Particle& adj_particle: data.grid.grid_blocks[index_adj].block_particles){
+
+                        norm_2 = calculateNorm(particle.pos, adj_particle.pos);
+
+                        if (particle.density_updated && adj_particle.density_updated && adj_particle.acceleration_updated == false && particle != adj_particle) {
+                            if (norm_2 < data.smoothing_length_2) {
+                                dist = sqrt(max(norm_2, MINIMUM_DISTANCE));
+                                transferAcceleration(particle, adj_particle, dist, data);
+                            }
                         }
-                        else{particle.density += 0;}
+
                     }
                 }
-                else if (mode=="acceleration"){
-                    if (particle.density_updated && adj_particle.density_updated && adj_particle.acceleration_updated == false && particle != adj_particle) {
-                        if (norm_2 < data.smoothing_length_2) {
-                            dist = sqrt(max(norm_2, MINIMUM_DISTANCE));
-                            transferAcceleration(particle, adj_particle, dist, data);
+                else if (index_adj == block.second.block_index){
+                    //if (particle.id == 204 ){cout << "Particle 204: " << particle.density << '\n';}
+                    for (size_t j = i + 1; j < particles.size(); ++j){
+                        Particle& adj_particle = particles[j];
+                        norm_2 = calculateNorm(particle.pos, adj_particle.pos);
+                        if (particle.density_updated && adj_particle.density_updated && adj_particle.acceleration_updated == false && particle != adj_particle) {
+                            if (norm_2 < data.smoothing_length_2) {
+                                dist = sqrt(max(norm_2, MINIMUM_DISTANCE));
+                                transferAcceleration(particle, adj_particle, dist, data);
+                            }
                         }
                     }
                 }
             }
+            particle.acceleration_updated = true;
+            /*if (particle.id == 204){
+                cout << "Id: "<< particle.id << ", Density: " << particle.density << '\n';
+                cout << "Pos: " << particle.pos[0] << ", " << particle.pos[1] << ", " << particle.pos[2] << '\n';
+                cout << "ACC: " << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';
+            }*/
         }
-        if (mode == "density"){
-            transformDensity(particle, data);
-            particle.density_updated = true;
-            particle.acceleration_updated = false;
-            //cout << "Id: "<< particle.id << ", Density: " << particle.density << '\n';
-            }
-        if (mode == "acceleration"){particle.acceleration_updated = true;}
-        if (particle.id == 204){
-            cout << "Id: "<< particle.id << ", Density: " << particle.density << '\n';
-            cout << "Pos: " << particle.pos[0] << ", " << particle.pos[1] << ", " << particle.pos[2] << '\n';
-            cout << "ACC: " << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';
-        }
-        //if (mode == "acceleration"){cout << "Id: "<< particle.id << ", Acceleration: " << particle.acceleration[0] << "," << particle.acceleration[1] << "," << particle.acceleration[2]  << '\n';}
     }
-}*/
-/*
-// ACTUALIZADA
-int modifyBlock(Block& current_block, std::map<std::vector<int>, vector<vector<int>>>& adjacent_blocks_map, SimulationData& data) {
-
-    // En el mapa de bloques adyacentes tenemos pares clave-valor de la forma bloque {i,j,k} = vector bloques adyacentes{{i,j,k}, {i,j,k},...}
-    // Tomamos un vector de bloques adyacentes al bloque en el que está la partícula que se recibe como parámetro
-    // Así tomamos un submapa del mapa de partículas de manera que nos quedamos con los pares {i,j,k} = {P1,P2,..} para todos los bloques adyacentes
-    // Ahora queremos meter el vector de bloques referenciados en el SubMapa
-    SubGrid particleSubMap(current_block);
-    createSubMap(data.grid, adjacent_blocks_map[current_block.block_index], particleSubMap);
-    Teniendo el submapa con claves indices de bloques adyacentes al bloque de la partícula parámetro , y valores las partículas de dichos bloques adyacentes
-    debemos iterar por los bloques del submapa, y para cada partícula de cada bloque adyacente calcular la densidad con respecto a la partícula parámetro
-    if (!data.all_particles_density_updated){
-        //updateBlock(current_block_particles, particleSubMap, data, "density");
-        updateBlock2(particleSubMap, data, "density");
-    }
-    else{
-        //updateBlock(current_block_particles, particleSubMap, data, "acceleration");
-        updateBlock2(particleSubMap, data, "acceleration");
-    }
-
-    return 0;
-}*/
-
-
+    //cout << "c: " << c << '\n';
+    //cout << "k: " << k << '\n';
+}
 double calcCord(Particle& particle, int index){
     double cord;
     cord = particle.pos[index] + particle.hv[index]*TIMESTAMP;
@@ -331,18 +261,19 @@ void updateVelocity(Particle& particle, int index){
 void updateHv(Particle& particle, int index){
     particle.hv[index] += particle.acceleration[index]*TIMESTAMP;
 }
-void checkBorderLimits(Particle& particle, SimulationData& data, int index){
+void checkBorderLimits(Particle& particle, SimulationData& data, int index, int actual_block_index){
     double d = 0.0;
-    int actual_block_index = calcParticleIndex(particle, data.grid)[index];
     if (actual_block_index==0){
         d = particle.pos[index] - LOWER_LIMIT[index];
     }
     else if (actual_block_index == data.grid.grid_dimensions[index] - 1){
         d = UPPER_LIMIT[index] - particle.pos[index];
     }
-    /*if (particle.id == 204){
+    /*if (particle.id == 2229){
         cout << d << '\n';
-        cout << "Pos xxx: "  << particle.pos[0] << ", " << particle.pos[1] << ", " << particle.pos[2] << '\n';}*/
+        cout << "Pos xxx: "  << particle.pos[0] << ", " << particle.pos[1] << ", " << particle.pos[2] << '\n';
+        //cout << "Block Index: x:" << actual_block_index[0] << "y: " << actual_block_index[1] << "z: " << actual_block_index[2] << '\n';
+    }*/
     if (d<0){
         double particleAxisPos;
         if (actual_block_index == 0){
@@ -372,6 +303,7 @@ void removeParticlesFromBlock(Block& block, std::vector<Particle>& particles_to_
     // Utilizar std::erase para eliminar las partículas trasladadas
     block.block_particles.erase(new_end, block.block_particles.end());
 }
+
 void updateParticleBlockBelonging(SimulationData& data){
     vector<int> new_block_particle_index;
     std::vector<int>old_block_index;
@@ -385,14 +317,11 @@ void updateParticleBlockBelonging(SimulationData& data){
                 //if (particle.id == 204){cout << "Id Block 204: " << new_block_particle_index[0] << ", " << new_block_particle_index[1] << ", " << new_block_particle_index[2] << '\n';}
                 //cout << "here " << particle.id <<'\n';
                 // añadir a new_block_particles
-                for(auto& new_block:data.grid.grid_blocks){
-                    if (new_block_particle_index == new_block.second.block_index){
-                        new_block.second.block_particles.push_back(particle);
-                    }
-                }
+                data.grid.grid_blocks[new_block_particle_index].block_particles.push_back(particle);
                 // eliminar de old_block_particles
                 particles_to_remove.push_back(particle);
             }
+
         }
         if(!particles_to_remove.empty()){removeParticlesFromBlock(current_block.second, particles_to_remove);}
     }
@@ -400,29 +329,62 @@ void updateParticleBlockBelonging(SimulationData& data){
 void updateParticle(std::vector<int>block_index, Particle& particle, SimulationData& data){
     double cord, var;
     std::vector<double> ngrids{data.grid.grid_dimensions[0], data.grid.grid_dimensions[1], data.grid.grid_dimensions[2]};
-    /*if (particle.id == 204) {
+    // Aqui esta la salida del fichero partcol-base
+    /*if (particle.id == 2229) {
         cout << "---------------------------------" << '\n';
-        cout << "Pos before update: "  << particle.pos[0] << ", " << particle.pos[1] << ", " << particle.pos[2] << '\n';
-        cout << "Hv before update: "  << particle.hv[0] << ", " << particle.hv[1] << ", " << particle.hv[2] << '\n';
-        cout << "V before update: "  << particle.vel[0] << ", " << particle.vel[1] << ", " << particle.vel[2] << '\n';
-        cout << "Acc before update: "  << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';
+        cout << "Density before collision: " << particle.density << '\n';
+        cout << "Pos before collision: "  << particle.pos[0] << ", " << particle.pos[1] << ", " << particle.pos[2] << '\n';
+        cout << "Hv before collision: "  << particle.hv[0] << ", " << particle.hv[1] << ", " << particle.hv[2] << '\n';
+        cout << "V before collision: "  << particle.vel[0] << ", " << particle.vel[1] << ", " << particle.vel[2] << '\n';
+        cout << "Acc before collision: "  << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';
         cout << "---------------------------------" << '\n';
     }*/
-    for(int i=0; i < 3 ; ++i){
+    for(int i=0; i < 3 ; ++i) {
         cord = calcCord(particle, i);
         var = calcVariation(block_index[i], cord, data, i);
-        if (var>MINIMUM_VARIATION) {calcAcceleration(particle, var, data, i);}
+        if (var > MINIMUM_VARIATION) { calcAcceleration(particle, var, data, i);}
         updatePosition(particle, i);
         updateVelocity(particle, i);
         updateHv(particle, i);
-
-        checkBorderLimits(particle, data, i);
+        checkBorderLimits(particle, data, i, block_index[i]);
     }
-    /*if (particle.id == 204) {
-        cout << "Pos after update: "  << particle.pos[0] << ", " << particle.pos[1] << ", " << particle.pos[2] << '\n';
-        cout << "Hv after update: "  << particle.hv[0] << ", " << particle.hv[1] << ", " << particle.hv[2] << '\n';
-        cout << "V after update: "  << particle.vel[0] << ", " << particle.vel[1] << ", " << particle.vel[2] << '\n';
-        cout << "Acc after update: "  << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';
+    /*if (particle.id == 2229) {
+        cout << "---------------------------------" << '\n';
+        cout << "Density after collision/before movement: " << particle.density << '\n';
+        cout << "Pos after collision/before movement: "  << particle.pos[0] << ", " << particle.pos[1] << ", " << particle.pos[2] << '\n';
+        cout << "Hv after collision/before movement: "  << particle.hv[0] << ", " << particle.hv[1] << ", " << particle.hv[2] << '\n';
+        cout << "V after collision/before movement: "  << particle.vel[0] << ", " << particle.vel[1] << ", " << particle.vel[2] << '\n';
+        cout << "Acc after collision/before movement: "  << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';
+        cout << "---------------------------------" << '\n';
+    }*/
+
+    /*for(int i=0; i < 3 ; ++i) {
+        updatePosition(particle, i);
+        updateVelocity(particle, i);
+        updateHv(particle, i);
+    }*/
+
+    // Aqui está la salida del fichero motion-base
+
+     /*if (particle.id == 2229) {
+        cout << "Density after movement/before limit process: " << particle.density << '\n';
+        cout << "Pos after movement/before limit process: "  << particle.pos[0] << ", " << particle.pos[1] << ", " << particle.pos[2] << '\n';
+        cout << "Hv after movement/before limit process: "  << particle.hv[0] << ", " << particle.hv[1] << ", " << particle.hv[2] << '\n';
+        cout << "V after movement/before limit process: "  << particle.vel[0] << ", " << particle.vel[1] << ", " << particle.vel[2] << '\n';
+        cout << "Acc after movement/before limit process: "  << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';
+        cout << "---------------------------------" << '\n';
+    }*/
+     /*
+    for(int i=0; i < 3 ; ++i){
+        checkBorderLimits(particle, data, i, block_index[i]);
+    }*/
+    // Aqui está la salida del fichero boundint-base
+    /*if (particle.id == 2229) {
+        cout << "Density after limit process: " << particle.density << '\n';
+        cout << "Pos after limit process: "  << particle.pos[0] << ", " << particle.pos[1] << ", " << particle.pos[2] << '\n';
+        cout << "Hv after limit process: "  << particle.hv[0] << ", " << particle.hv[1] << ", " << particle.hv[2] << '\n';
+        cout << "V after limit process: "  << particle.vel[0] << ", " << particle.vel[1] << ", " << particle.vel[2] << '\n';
+        cout << "Acc after limit process: "  << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';
         cout << "---------------------------------" << '\n';
     }*/
 }
@@ -436,7 +398,6 @@ void establishParticleFunctionality(SimulationData data){
             updateParticle(block.second.block_index, particle, data);
         }
     }
-    updateParticleBlockBelonging(data);
     //cout << "here-4" << '\n';
 }
 
@@ -445,13 +406,11 @@ int processSimulation(SimulationData& data){
     //map<vector<int>,vector<vector<int>>> adjacent_blocks = createAdjacentBlocks(data.grid);
 
     //cout << "check" << '\n';
-    updateBlocks(data, "density");
-    //std::cout << "-----------END DENSITY---------------" << '\n';
-    data.all_particles_density_updated = true;
-    updateBlocks(data, "acceleration");
+    updateParticleBlockBelonging(data);
 
+    updateBlocksDensity(data);
+    updateBlocksAcceleration(data);
     //std::cout << "-----------END ACCELERATION---------------" << '\n';
-
     data.all_particles_density_updated = false;
     establishParticleFunctionality(data);
     initializeDensityAcceleration(data);

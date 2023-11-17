@@ -3,6 +3,11 @@
 #include "grid.hpp"
 
 #include "cmath"
+#include <cmath>
+#include <fstream>
+#include <iostream>
+#include <stdexcept>
+
 using namespace simulationConstants;
 
 void initGrid(Grid& grid, double smoothing_length) {
@@ -30,9 +35,9 @@ std::vector<int> calcParticleIndex(Particle& particle, Grid& grid){
     std::vector<int> particle_block_index{};
     double i =0, j=0, k=0;
 
-    if (grid.grid_dimensions[0]>0){i = std::floor((particle.pos[0] - LOWER_LIMIT[0]) / grid.grid_dimensions[0]);}
-    if (grid.grid_dimensions[1]>0){j = std::floor((particle.pos[1] - LOWER_LIMIT[1]) / grid.grid_dimensions[1]);}
-    if (grid.grid_dimensions[2]>0){k = std::floor((particle.pos[2] - LOWER_LIMIT[2]) / grid.grid_dimensions[2]);}
+    if (grid.grid_dimensions[0]>0){i = std::floor((particle.pos[0] - LOWER_LIMIT[0]) / grid.block_dimensions[0]);}
+    if (grid.grid_dimensions[1]>0){j = std::floor((particle.pos[1] - LOWER_LIMIT[1]) / grid.block_dimensions[1]);}
+    if (grid.grid_dimensions[2]>0){k = std::floor((particle.pos[2] - LOWER_LIMIT[2]) / grid.block_dimensions[2]);}
 
     if (i < 0) {i = 0;} else if (i > grid.grid_dimensions[0] - 1) { i = grid.grid_dimensions[0] - 1;}
 
