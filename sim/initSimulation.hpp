@@ -26,8 +26,8 @@ struct SimulationData{
             :grid(initialGrid), smoothing_length(0.0), particle_mass(0.0), all_particles_density_updated(false) {}
 };
 
-void createAdjacentBlocks(Grid& grid);
 void createGridBlocks(Grid& grid);
+void initAdjIndexVectorBlocks(Grid& grid);
 void checkBlockIndex(int &i, int & index_j, int & index_k, Grid& grid);
 void calculateParameters(double ppm, int np, SimulationData& data);
 int setParticleData(const std::string& inputFile, SimulationData& data);

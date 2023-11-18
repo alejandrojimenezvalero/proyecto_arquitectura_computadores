@@ -13,6 +13,7 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
+#include <chrono>
 
 using namespace simulationConstants;
 
@@ -45,10 +46,13 @@ void createGridBlocks(Grid& grid) {
     }
 }*/
 void createGridBlocks(Grid& grid) {
+    int c = 0;
     for (int i =0; i < grid.grid_dimensions[0]; ++i) {
         for (int j=0; j < grid.grid_dimensions[1]; ++j) {
             for (int k=0; k < grid.grid_dimensions[2]; ++k){
                 Block block = createBlock(i, j, k);
+                grid.adjacent_index_map[{i,j,k}]= c;
+                c++;
                 for (int di = -1; di <= 1; di++) {
                     for (int dj = -1; dj <= 1; dj++) {
                         for (int dk = -1; dk <= 1; dk++) {
@@ -58,13 +62,21 @@ void createGridBlocks(Grid& grid) {
 
                             if (blockExists(target_i, target_j, target_k, grid)) {
                                 // Agregar las coordenadas del bloque adyacente al vector
-                                block.adj_blocks.push_back({target_i, target_j, target_k});
+                                block.adj_blocks_cords.push_back({target_i, target_j, target_k});
                             }
                         }
                     }
                 }
-                grid.grid_blocks[block.block_index]  = block;
+                grid.grid_blocks.push_back(block);
             }
+        }
+    }
+}
+
+void initAdjIndexVectorBlocks(Grid& grid){
+    for(Block& block: grid.grid_blocks){
+        for(std::vector<int> adj_cords:block.adj_blocks_cords){
+            block.adj_index_vector_blocks.push_back(grid.adjacent_index_map[adj_cords]);
         }
     }
 }
@@ -102,6 +114,7 @@ void calculateParameters(double ppm, int np, SimulationData& data) {
 int setParticleData(const std::string& inputFile, SimulationData& data){
     std::ifstream input_file = openFile(inputFile);
     createGridBlocks(data.grid);
+    initAdjIndexVectorBlocks(data.grid);
     std::cout << "check0" << '\n';
     int real_particles = 0;
     //NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
@@ -135,14 +148,15 @@ void readParticleFields(std::ifstream& input_file, Particle& particle) {
 }
 
 void addParticleToBlock(const Particle& particle, Grid& grid, const std::vector<int>& particle_block_index) {
-    for (auto& block : grid.grid_blocks) {
-        if (block.second.block_index == particle_block_index) {
-            block.second.block_particles.push_back(particle);
+    for (Block& block : grid.grid_blocks) {
+        if (block.block_index == particle_block_index) {
+            block.block_particles.push_back(particle);
         }
     }
 }
 
 int initiateSimulation(const std::string& n_iterations, const std::string& inputFile) {
+    auto start = std::chrono::high_resolution_clock::now();
     std::ifstream input_file = openFile(inputFile);
     if(!input_file){throwException("Cannot open " + inputFile + " for reading", -3);}
 
@@ -161,6 +175,9 @@ int initiateSimulation(const std::string& n_iterations, const std::string& input
     calculateParameters(ppm, num_particles, data);
 
     const int real_particles = setParticleData(inputFile, data);
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    std::cout << "Init: " << duration.count() << '\n';
     if (num_particles != real_particles) {throwException("Error: Number of particles mismatch. Header:  " + std::to_string(num_particles) +", Found: " + std::to_string(real_particles),-5); } //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 
     for (int i = 0; i < n_iterations_int; ++i) {processSimulation(data);}

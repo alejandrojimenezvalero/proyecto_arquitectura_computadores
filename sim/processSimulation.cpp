@@ -18,10 +18,7 @@
 using namespace std;
 using namespace simulationConstants;
 
-bool blockExists(int i, int j, int k, Grid& grid){
-  if ((i < 0) or (i > grid.grid_dimensions[0] - 1) or (j < 0) or (i > grid.grid_dimensions[1] - 1) or (k < 0) or (k > grid.grid_dimensions[2] - 1)){return false;}
-  return true;
-}
+
 /*
 void createAdjacentBlocks(Grid& grid) {
     map<vector<int>, vector<vector<int>>> adjacentBlocks;
@@ -123,9 +120,9 @@ void transferAcceleration(Particle& particlei, Particle& particlej, double& dist
 void updateBlocksDensity(SimulationData& data){
     double norm_2;
     //int c=0; int k= 0;
-    for(auto& block: data.grid.grid_blocks){
-        for (Particle& particle: block.second.block_particles){
-            for(vector<int> index_adj:block.second.adj_blocks){
+    for(Block& block: data.grid.grid_blocks){
+        for (Particle& particle: block.block_particles){
+            for(int index_adj:block.adj_index_vector_blocks){
                 Block& adj_block = data.grid.grid_blocks[index_adj];
                 //cout << "index_adj: " << index_adj[0] << ", " << index_adj[1] << ", " << index_adj[2] << ", " <<'\n';
                 //cout << "index_block: " << block.second.block_index[0] << ", " << block.second.block_index[1] << ", " << block.second.block_index[2] << ", " <<'\n';
@@ -159,7 +156,7 @@ void updateBlocksDensity(SimulationData& data){
                 cout << "ACC: " << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';
             }*/
         }
-        block.second.updated_density = true;
+        block.updated_density = true;
     }
     data.all_particles_density_updated = true;
     //cout << "c: " << c << '\n';
@@ -167,11 +164,9 @@ void updateBlocksDensity(SimulationData& data){
 }
 void updateBlocksAcceleration(SimulationData& data){
     double norm_2, dist;
-    for(auto& block: data.grid.grid_blocks){
-        std::vector<Particle>& particles = block.second.block_particles;
-        for (size_t i = 0; i < particles.size(); ++i){
-            Particle& particle = particles[i];
-            for(vector<int> index_adj:block.second.adj_blocks){
+    for(Block& block: data.grid.grid_blocks){
+        for (Particle& particle: block.block_particles){
+            for(int index_adj:block.adj_index_vector_blocks){
                 Block& adj_block = data.grid.grid_blocks[index_adj];
                 //cout << "index_adj: " << index_adj[0] << ", " << index_adj[1] << ", " << index_adj[2] << ", " <<'\n';
                 //cout << "index_block: " << block.second.block_index[0] << ", " << block.second.block_index[1] << ", " << block.second.block_index[2] << ", " <<'\n';
@@ -201,7 +196,7 @@ void updateBlocksAcceleration(SimulationData& data){
                 cout << "ACC: " << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';
             }*/
         }
-        block.second.updated_acceleration=true;
+        block.updated_acceleration=true;
     }
     //cout << "c: " << c << '\n';
     //cout << "k: " << k << '\n';
@@ -289,28 +284,29 @@ void updateParticleBlockBelonging(SimulationData& data){
     vector<int> new_block_particle_index;
     std::vector<int>old_block_index;
     std::vector<int>check_block_index{1,0,7};
-    for(auto& current_block:data.grid.grid_blocks){
-        old_block_index = current_block.second.block_index;
+    for(Block& current_block:data.grid.grid_blocks){
+        old_block_index = current_block.block_index;
         std::vector<Particle> particles_to_remove{};
-        for (Particle& particle: current_block.second.block_particles){
+        for (Particle& particle: current_block.block_particles){
             particle.density = 0.0;
             particle.density_updated = false;
             particle.acceleration[0] = 0.0; particle.acceleration[1] = -9.8; particle.acceleration[2] = 0.0;
             particle.acceleration_updated = false;
             new_block_particle_index = calcParticleIndex(particle, data.grid);
             if (new_block_particle_index != old_block_index){
+                int index_in_vector = calcParticleIndexVector(particle, data.grid);
                 //if (particle.id == 204){cout << "Id Block 204: " << new_block_particle_index[0] << ", " << new_block_particle_index[1] << ", " << new_block_particle_index[2] << '\n';}
                 //cout << "here " << particle.id <<'\n';
                 // añadir a new_block_particles
-                data.grid.grid_blocks[new_block_particle_index].block_particles.push_back(particle);
+                data.grid.grid_blocks[index_in_vector].block_particles.push_back(particle);
                 // eliminar de old_block_particles
                 particles_to_remove.push_back(particle);
             }
 
         }
-        current_block.second.updated_density=false;
-        current_block.second.updated_acceleration=false;
-        if(!particles_to_remove.empty()){removeParticlesFromBlock(current_block.second, particles_to_remove);}
+        current_block.updated_density=false;
+        current_block.updated_acceleration=false;
+        if(!particles_to_remove.empty()){removeParticlesFromBlock(current_block, particles_to_remove);}
     }
 }
 void updateParticle(std::vector<int>& block_index, Particle& particle, SimulationData& data){
@@ -384,10 +380,10 @@ void updateParticle(std::vector<int>& block_index, Particle& particle, Simulatio
 void establishParticleFunctionality(SimulationData& data){
     std::vector<int>block_index;
     std::shared_ptr<std::vector<Particle>> block_particles;
-    for(auto& block:data.grid.grid_blocks){
-        for (Particle& particle: block.second.block_particles){
+    for(Block& block:data.grid.grid_blocks){
+        for (Particle& particle: block.block_particles){
             //if (particle.id == 204){cout << 204 << '\n';}
-            updateParticle(block.second.block_index, particle, data);
+            updateParticle(block.block_index, particle, data);
         }
     }
     //cout << "here-4" << '\n';

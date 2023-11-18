@@ -58,3 +58,15 @@ std::vector<int> calcParticleIndex(Particle& particle, Grid& grid){
     particle_block_index = {static_cast<int>(index_i), static_cast<int>(index_j), static_cast<int>(index_k)};
     return particle_block_index;
 }
+
+int calcParticleIndexVector(Particle& particle, Grid& grid){
+    std::vector<int> block_cords = calcParticleIndex(particle, grid);
+    int index_in_vector = grid.adjacent_index_map[block_cords];
+    return index_in_vector;
+}
+
+
+bool blockExists(int i, int j, int k, Grid& grid){
+    if ((i < 0) or (i > grid.grid_dimensions[0] - 1) or (j < 0) or (i > grid.grid_dimensions[1] - 1) or (k < 0) or (k > grid.grid_dimensions[2] - 1)){return false;}
+    return true;
+}
