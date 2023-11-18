@@ -8,7 +8,8 @@ struct Block{
     std::vector<int> block_index{};
     std::vector<Particle> block_particles;
     std::vector<std::vector<int>> adj_blocks;
-    bool updated = false;
+    bool updated_density = false;
+    bool updated_acceleration = false;
 };
 
 Block createBlock(int i, int j, int k);
