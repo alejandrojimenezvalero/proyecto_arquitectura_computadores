@@ -46,13 +46,13 @@ void createGridBlocks(Grid& grid) {
     }
 }*/
 void createGridBlocks(Grid& grid) {
-    int c = 0;
+    int cont = 0;
     for (int i =0; i < grid.grid_dimensions[0]; ++i) {
         for (int j=0; j < grid.grid_dimensions[1]; ++j) {
             for (int k=0; k < grid.grid_dimensions[2]; ++k){
                 Block block = createBlock(i, j, k);
-                grid.adjacent_index_map[{i,j,k}]= c;
-                c++;
+                grid.adjacent_index_map[{i,j,k}]= cont;
+                cont++;
                 for (int di = -1; di <= 1; di++) {
                     for (int dj = -1; dj <= 1; dj++) {
                         for (int dk = -1; dk <= 1; dk++) {
@@ -73,13 +73,14 @@ void createGridBlocks(Grid& grid) {
     }
 }
 
-void initAdjIndexVectorBlocks(Grid& grid){
-    for(Block& block: grid.grid_blocks){
-        for(std::vector<int> adj_cords:block.adj_blocks_cords){
+void initAdjIndexVectorBlocks(Grid& grid) {
+    for (Block& block : grid.grid_blocks) {
+        for(const std::vector<int>& adj_cords : block.adj_blocks_cords) {
             block.adj_index_vector_blocks.push_back(grid.adjacent_index_map[adj_cords]);
         }
     }
 }
+
 
 void checkBlockIndex(int &index_i, int & index_j, int & index_k, Grid& grid){
   index_i = (index_i < 0)? 0:index_i;
@@ -94,13 +95,17 @@ void calculateParameters(double ppm, int np, SimulationData& data) {
   const double particle_mass = FLUID_DENSITY / pow(ppm, 3);
   initGrid(data.grid, smoothing_length);
   calculateBlockSize(data.grid);
-  data.smoothing_length= smoothing_length; data.particle_mass= particle_mass;data.all_particles_density_updated = false;
+  data.smoothing_length= smoothing_length; data.particle_mass= particle_mass;
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   data.smoothing_length_2 = pow(data.smoothing_length, 2);
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   data.smoothing_length_6 = pow(smoothing_length, 6);
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   data.smoothing_length_9 = pow(smoothing_length, 9);
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+  data.escalar_pos  = (15 / (simulationConstants::PI * data.smoothing_length_6)) * ((3 * particle_mass * simulationConstants::STIFFNESS_PRESSURE) / 2);
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+  data.escalar_vel = (45 / (simulationConstants::PI * data.smoothing_length_6));
 
   std::cout << "Number of particles: " << np << '\n';
   std::cout << "Particles per meter: " << ppm << '\n';
