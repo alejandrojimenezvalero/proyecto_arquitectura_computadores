@@ -9,7 +9,7 @@
 using namespace std;
 
 int validateParameters(const std::vector<std::string> &arguments) {
-  size_t n_args = arguments.size();
+  const size_t n_args = arguments.size();
   if(n_args != 3){throwException( "Error: Invalid number of arguments: " + std::to_string(n_args) + ".", -1);};
   try {
     if(stoi(arguments[0]) < 0){

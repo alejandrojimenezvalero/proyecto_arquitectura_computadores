@@ -26,6 +26,11 @@ FetchContent_MakeAvailable(GSL)
 # Note this will slow down compilation.
 # You may temporarily disable but do not forget to enable again.
 set(CMAKE_CXX_CLANG_TIDY clang-tidy -header-filter=.*)
+
+find_program(CLANG_FORMAT_EXE
+        NAMES ".clang-format"
+        DOC ".clang-format"
+)
 # All includes relative to source tree root.
 include_directories (PUBLIC .)
 # Process cmake from sim and fluid directories

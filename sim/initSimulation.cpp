@@ -13,10 +13,6 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
-#include <chrono>
-#include <map>
-#include <tuple>
-#include <memory>
 
 using namespace simulationConstants;
 
@@ -56,9 +52,9 @@ void createGridBlocks(Grid& grid) {
                 for (int di = -1; di <= 1; di++) {
                     for (int dj = -1; dj <= 1; dj++) {
                         for (int dk = -1; dk <= 1; dk++) {
-                            int target_i = i + di;
-                            int target_j = j + dj;
-                            int target_k = k + dk;
+                            const int target_i = i + di;
+                            const int target_j = j + dj;
+                            const int target_k = k + dk;
 
                             if (blockExists(target_i, target_j, target_k, grid)) {
                                 // Agregar las coordenadas del bloque adyacente al vector
@@ -73,23 +69,27 @@ void createGridBlocks(Grid& grid) {
     }
 }
 
-
-int checkBlockIndex(int &i, int &j, int &k, Grid& grid){
-  i = (i < 0)? 0:i;
-  i = (i > grid.grid_dimensions[0] - 1) ? grid.grid_dimensions[0] - 1 : i;
-  j = (j < 0)? 0:j;
-  j = (j > grid.grid_dimensions[1] - 1) ? grid.grid_dimensions[1] - 1 : j;
-  k = (k < 0)? 0:k;
-  k = (k > grid.grid_dimensions[2] - 1) ? grid.grid_dimensions[2] - 1 : k;
-  return 0;
+void checkBlockIndex(int &index_i, int & index_j, int & index_k, Grid& grid){
+  index_i = (index_i < 0)? 0:index_i;
+  index_i = (index_i > grid.grid_dimensions[0] - 1) ? static_cast<int>(grid.grid_dimensions[0]) - 1 : index_i;
+  index_j = (index_j < 0)? 0: index_j;
+  index_j = (index_j > grid.grid_dimensions[1] - 1) ? static_cast<int>(grid.grid_dimensions[1]) - 1 : index_j;
+  index_k = (index_k < 0)? 0: index_k;
+  index_k = (index_k > grid.grid_dimensions[2] - 1) ? static_cast<int>(grid.grid_dimensions[2]) - 1 : index_k;
 }
 void calculateParameters(double ppm, int np, SimulationData& data) {
-  double smoothing_length = RADIO_MULTIPLICATOR / ppm;
-  double particle_mass = FLUID_DENSITY / pow(ppm, 3);
+  const double smoothing_length = RADIO_MULTIPLICATOR / ppm;
+  const double particle_mass = FLUID_DENSITY / pow(ppm, 3);
   initGrid(data.grid, smoothing_length);
   calculateBlockSize(data.grid);
   data.smoothing_length= smoothing_length; data.particle_mass= particle_mass;data.all_particles_density_updated = false;
-  data.smoothing_length_2 = pow(data.smoothing_length,2);data.smoothing_length_6 = pow(smoothing_length, 6); data.smoothing_length_9 = pow(smoothing_length, 9);
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+  data.smoothing_length_2 = pow(data.smoothing_length, 2);
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+  data.smoothing_length_6 = pow(smoothing_length, 6);
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+  data.smoothing_length_9 = pow(smoothing_length, 9);
+
   std::cout << "Number of particles: " << np << '\n';
   std::cout << "Particles per meter: " << ppm << '\n';
   std::cout << "Smoothing length: " << smoothing_length << '\n';
@@ -98,19 +98,17 @@ void calculateParameters(double ppm, int np, SimulationData& data) {
   std::cout << "Number of blocks: " << data.grid.grid_dimensions[0] * data.grid.grid_dimensions[1] * data.grid.grid_dimensions[2] << '\n';
   std::cout << "Block size: " << data.grid.block_dimensions[0] << " x " << data.grid.block_dimensions[1] << " x " << data.grid.block_dimensions[2] << '\n';
 }
+
 int setParticleData(const std::string& inputFile, SimulationData& data){
     std::ifstream input_file = openFile(inputFile);
     createGridBlocks(data.grid);
     std::cout << "check0" << '\n';
     int real_particles = 0;
+    //NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     input_file.seekg(8,std::ios::beg);
     while(!input_file.eof()){
         Particle particle;
-        float floatField;
-        for (auto& field :{&particle.pos[0], &particle.pos[1], &particle.pos[2], &particle.hv[0], &particle.hv[1], &particle.hv[2],&particle.vel[0], &particle.vel[1], &particle.vel[2]}){
-          input_file.read(reinterpret_cast<char*>(&floatField), sizeof(float));
-          *field = static_cast<double>(floatField);
-        }
+        readParticleFields(input_file, particle);
         //Calculamos los indices
         std::vector<int> particle_block_index = calcParticleIndex(particle, data.grid);
 
@@ -120,54 +118,52 @@ int setParticleData(const std::string& inputFile, SimulationData& data){
           break;
         }
         particle.id = real_particles;
-        for (auto& block : data.grid.grid_blocks){
-            if (block.second.block_index == particle_block_index){
-                block.second.block_particles.push_back(particle);
-            }
-        }
+        addParticleToBlock(particle, data.grid, particle_block_index);
 
         ++real_particles;
         }
     return real_particles;
 }
 
+void readParticleFields(std::ifstream& input_file, Particle& particle) {
+    float floatField = 0;
+    for (const auto& field : {particle.pos.data(), &particle.pos[1], &particle.pos[2], particle.hv.data(), &particle.hv[1], &particle.hv[2], particle.vel.data(), &particle.vel[1], &particle.vel[2]}) {
+        //NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        input_file.read(reinterpret_cast<char*>(&floatField), sizeof(float));
+        *field = static_cast<double>(floatField);
+    }
+}
+
+void addParticleToBlock(const Particle& particle, Grid& grid, const std::vector<int>& particle_block_index) {
+    for (auto& block : grid.grid_blocks) {
+        if (block.second.block_index == particle_block_index) {
+            block.second.block_particles.push_back(particle);
+        }
+    }
+}
+
 int initiateSimulation(const std::string& n_iterations, const std::string& inputFile) {
-    auto start = std::chrono::high_resolution_clock::now();
     std::ifstream input_file = openFile(inputFile);
     if(!input_file){throwException("Cannot open " + inputFile + " for reading", -3);}
-    int n_iterations_int = std::stoi(n_iterations);
-    // double doubleNumber = static_cast<double>(floatNumber);
-    float ppmFloat;
-    input_file.read(reinterpret_cast<char *>(&ppmFloat), sizeof(float));
-    double ppm = static_cast<double>(ppmFloat);
-    int np;
-    input_file.read(reinterpret_cast<char *>(&np), sizeof(int));
 
-    if (np < 0) {
-        throwException("Error: Invalid number of particles: " + std::to_string(np), -5);
-    }
+    const int n_iterations_int = std::stoi(n_iterations);
+
+    float ppmFloat = 0.0;
+    input_file.read(reinterpret_cast<char *>(&ppmFloat), sizeof(float)); //NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+    const auto ppm = static_cast<double>(ppmFloat);
+
+    int num_particles = 0;
+    input_file.read(reinterpret_cast<char *>(&num_particles), sizeof(int)); //NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+    if (num_particles < 0) {throwException("Error: Invalid number of particles: " + std::to_string(num_particles), -5);} //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+
     Grid grid;
     SimulationData data(grid);
-    calculateParameters(ppm, np, data);
-    // Debemos llamar a la función que guarda los parámetros de las partículas
-    int real_particles;
-    real_particles = setParticleData(inputFile, data);
+    calculateParameters(ppm, num_particles, data);
 
-    if (np != real_particles) {
-        throwException("Error: Number of particles mismatch. Header:  " + std::to_string(np) +
-                           ", Found: " + std::to_string(real_particles),
-                       -5);
-    }
-    //int c = 0;
-    for (int i = 0; i < n_iterations_int; ++i) {
-        processSimulation(data);
-        //std::cout << "----" << '\n';
-        //std::cout << c << '\n';
-        //std::cout << "----" << '\n';
-        //c += 1;
-    }
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    std::cout << duration.count()/1000000 << '\n';
+    const int real_particles = setParticleData(inputFile, data);
+    if (num_particles != real_particles) {throwException("Error: Number of particles mismatch. Header:  " + std::to_string(num_particles) +", Found: " + std::to_string(real_particles),-5); } //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+
+    for (int i = 0; i < n_iterations_int; ++i) {processSimulation(data);}
+
     return 0;
-  }
+}

@@ -7,8 +7,6 @@
 #include <vector>
 #include <map>
 
-
-
 struct Grid{
     std::vector<double> grid_dimensions;
     std::vector<double> block_dimensions;
