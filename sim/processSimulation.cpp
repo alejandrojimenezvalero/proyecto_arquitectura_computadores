@@ -10,6 +10,7 @@
 #include <map>
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 #include <numeric>
 #include <tuple>
 #include <chrono>

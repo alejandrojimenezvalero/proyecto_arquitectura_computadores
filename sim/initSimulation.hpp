@@ -28,9 +28,11 @@ struct SimulationData{
 
 void createAdjacentBlocks(Grid& grid);
 void createGridBlocks(Grid& grid);
-int checkBlockIndex(int &i, int &j, int &k, Grid& grid);
+void checkBlockIndex(int &i, int & index_j, int & index_k, Grid& grid);
 void calculateParameters(double ppm, int np, SimulationData& data);
 int setParticleData(const std::string& inputFile, SimulationData& data);
 int initiateSimulation(const std::string& n_iterations, const std::string& inputFile);
+void readParticleFields(std::ifstream& input_file, Particle& particle);
+void addParticleToBlock(const Particle& particle, Grid& grid, const std::vector<int>& particle_block_index);
 
 #endif  // FLUID_INITSIMULATION_HPP
