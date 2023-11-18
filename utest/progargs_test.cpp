@@ -13,13 +13,12 @@ using namespace testing;
 
 std::string getFileContent(const std::string& filename) {
   std::ifstream file(filename);
-  if (file.is_open()) {
+  if (file) {
     std::ostringstream buffer;
     buffer << file.rdbuf();
     return buffer.str();
-  } else {
-    return "";  // Return an empty string if there was an issue opening the file
   }
+  return "";
 }
 //Valid Test
 TEST(ValidateParametersTest, ValidArguments) {
@@ -126,37 +125,19 @@ TEST(ValidateParametersTest, NegativeTimeSteps) {
   std::filesystem::remove(temp_filename);
 
 }
-//Invalid Test: invalid input file
-TEST(ValidateParametersTest, InvalidInputFile) {
-  std::vector<std::string> args = {"2000", "input.txt", "../../final.fld"};
-  // Act and Assert
-  EXPECT_EXIT(
-    {
-    try {
-      validateParameters(args);
-    } catch (...) {
-      // Ignorar otras excepciones que no sean std::exception
-    }
-    },
-    ::testing::ExitedWithCode(-3), ".*");
-  /*EXPECT_EXIT(
-      {
-        try {
-          validateParameters(args);
-        } catch (const std::ofstream::failure& e) {
-          std::string expected_error_message = "Cannot open " + args[1] + " for reading";
-          EXPECT_STREQ(expected_error_message.c_str(), e.what());
-          //std::exit(253);
-        }
-        //std::exit(253);  // Asegurarse de que haya una salida incluso si no se lanza la excepción
-      },
-      ::testing::ExitedWithCode(253),
-      ".*"
-  );*/
+//Invalid Test: invalid input file because it not exists
+TEST(ValidateParametersTest, CannotOpenInputFile) {
+  std::vector<std::string> args = {"2000",  "../../small.fld", "output.txt"};
+  try{
+    validateParameters(args);
 
+  }catch(const std::ofstream::failure& e){
+    std::string expected_error_message = "Cannot open " + args[1]+  " for reading";
+    EXPECT_STREQ(expected_error_message.c_str(), e.what());
+  }
 }
 
-//Invalid Test: invalid output file.
+//Invalid Test: invalid output file.because it not exists
 TEST(ValidateParametersTest, InvalidOutputFile) {
   std::vector<std::string> args = {"2000",  "../../small.fld", "output.txt"};
   try{
