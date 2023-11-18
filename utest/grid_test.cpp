@@ -7,7 +7,7 @@
 using namespace simulationConstants;
 
 TEST(CalculateBlockSizeTest, PositiveSizeGrid) {
-  Grid grid {{10, 20, 30},{},{}};
+  Grid grid {{10, 20, 30},{},{}, {}};
   calculateBlockSize(grid);
   double expected_sx = (UPPER_LIMIT[0] - LOWER_LIMIT[0]) / grid.grid_dimensions[0];
   double expected_sy = (UPPER_LIMIT[1] - LOWER_LIMIT[1]) / grid.grid_dimensions[1];
@@ -20,7 +20,7 @@ TEST(CalculateBlockSizeTest, PositiveSizeGrid) {
 
 
 TEST(CalculateBlockSizeTest, ZeroSizeGrid) {
-  Grid grid {{0, 0, 0},{},{}};
+  Grid grid {{0, 0, 0},{},{}, {}};
   calculateBlockSize(grid);
 
   EXPECT_DOUBLE_EQ(grid.block_dimensions[0], 0);
@@ -30,7 +30,7 @@ TEST(CalculateBlockSizeTest, ZeroSizeGrid) {
 
 
 TEST(CalculateBlockSizeTest, NegativeSizeGrid) {
-  Grid grid {{-5, -10, -15},{},{}};
+  Grid grid {{-5, -10, -15},{},{}, {}};
   calculateBlockSize(grid);
 
   EXPECT_DOUBLE_EQ(grid.block_dimensions[0], 0);
@@ -41,7 +41,7 @@ TEST(CalculateBlockSizeTest, NegativeSizeGrid) {
 
 //Valid test with positive smoothing_length
 TEST(InitGridSizeTest, PositiveSmoothingLength) {
-  Grid grid {{},{},{}};
+  Grid grid {{},{},{}, {}};
   double smoothing_length = 1.0;
   initGrid(grid, smoothing_length);
 
@@ -51,7 +51,7 @@ TEST(InitGridSizeTest, PositiveSmoothingLength) {
 }
 //Valid test with zero smoothing_length
 TEST(InitGridSizeTest, ZeroSmoothingLength) {
-  Grid grid {{},{},{}};
+  Grid grid {{},{},{}, {}};
   double smoothing_length = 0.0;
   initGrid(grid, smoothing_length);
 
@@ -61,7 +61,7 @@ TEST(InitGridSizeTest, ZeroSmoothingLength) {
 }
 //Valid test with negative smoothing_length
 TEST(InitGridSizeTest, NegativeSmoothingLength) {
-  Grid grid {{},{},{}};
+  Grid grid {{},{},{}, {}};
   double smoothing_length = -1.0;
   initGrid(grid, smoothing_length);
 
@@ -72,7 +72,7 @@ TEST(InitGridSizeTest, NegativeSmoothingLength) {
 
 TEST(CalcParticleIndexTest, ParticleInsideGrid) {
   Particle particle;
-  Grid grid {{10.0, 10.0, 10.0},{},{}};
+  Grid grid {{10.0, 10.0, 10.0},{},{},{}};
   particle.pos = {20.0, 40.0, 50.0};
 
   std::vector<int> result = calcParticleIndex(particle, grid);
@@ -84,7 +84,7 @@ TEST(CalcParticleIndexTest, ParticleInsideGrid) {
 
 TEST(CalcParticleIndexTest, ParticleIndexLowerThanLimit) {
   Particle particle;
-  Grid grid {{10.0, 10.0, 10.0},{},{}};
+  Grid grid {{10.0, 10.0, 10.0},{},{},{}};
   particle.pos = {-0.075, -0.09, -0.075};
 
   std::vector<int> result = calcParticleIndex(particle, grid);
@@ -96,7 +96,7 @@ TEST(CalcParticleIndexTest, ParticleIndexLowerThanLimit) {
 
 TEST(CalcParticleIndexTest, ParticleIndexGreaterThanLimit) {
   Particle particle;
-  Grid grid {{10.0, 10.0, 10.0},{},{}};
+  Grid grid {{10.0, 10.0, 10.0},{},{},{}};
   particle.pos = {300.0, 300.0, 300.0};
 
   std::vector<int> result = calcParticleIndex(particle, grid);
