@@ -8,6 +8,7 @@
 #include "grid.hpp"
 #include "particle.hpp"
 #include "processSimulation.hpp"
+#include "simulationResults.hpp"
 
 #include <cmath>
 #include <fstream>
@@ -91,26 +92,6 @@ void checkBlockIndex(int &index_i, int & index_j, int & index_k, Grid& grid){
     index_k = (index_k > grid.grid_dimensions[2] - 1) ? static_cast<int>(grid.grid_dimensions[2]) - 1 : index_k;
 }
 void calculateParameters(double ppm, int np, SimulationData& data) {
-  const double smoothing_length = RADIO_MULTIPLICATOR / ppm;
-  const double particle_mass = FLUID_DENSITY / pow(ppm, 3);
-  initGrid(data.grid, smoothing_length);
-  calculateBlockSize(data.grid);
-  data.smoothing_length= smoothing_length; data.particle_mass= particle_mass;data.all_particles_density_updated = false;
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  data.smoothing_length_2 = pow(data.smoothing_length, 2);
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  data.smoothing_length_6 = pow(smoothing_length, 6);
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  data.smoothing_length_9 = pow(smoothing_length, 9);
-  data.ppm = ppm;
-  data.np = np;
-  std::cout << "Number of particles: " << np << '\n';
-  std::cout << "Particles per meter: " << ppm << '\n';
-  std::cout << "Smoothing length: " << smoothing_length << '\n';
-  std::cout << "Particle mass: " << particle_mass << '\n';
-  std::cout << "Grid size: " << data.grid.grid_dimensions[0] << " x " << data.grid.grid_dimensions[1] << " x " << data.grid.grid_dimensions[2] << '\n';
-  std::cout << "Number of blocks: " << data.grid.grid_dimensions[0] * data.grid.grid_dimensions[1] * data.grid.grid_dimensions[2] << '\n';
-  std::cout << "Block size: " << data.grid.block_dimensions[0] << " x " << data.grid.block_dimensions[1] << " x " << data.grid.block_dimensions[2] << '\n';
     const double smoothing_length = RADIO_MULTIPLICATOR / ppm;
     const double particle_mass = FLUID_DENSITY / pow(ppm, 3);
     initGrid(data.grid, smoothing_length);
@@ -128,7 +109,7 @@ void calculateParameters(double ppm, int np, SimulationData& data) {
     data.escalar_vel = (45 / (simulationConstants::PI * data.smoothing_length_6));
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     data.escalar_density = (315/(64*PI*data.smoothing_length_9)) * data.particle_mass;
-
+    data.np = np; data.ppm = ppm;
     std::cout << "Number of particles: " << np << '\n';
     std::cout << "Particles per meter: " << ppm << '\n';
     std::cout << "Smoothing length: " << smoothing_length << '\n';
@@ -136,7 +117,6 @@ void calculateParameters(double ppm, int np, SimulationData& data) {
     std::cout << "Grid size: " << data.grid.grid_dimensions[0] << " x " << data.grid.grid_dimensions[1] << " x " << data.grid.grid_dimensions[2] << '\n';
     std::cout << "Number of blocks: " << data.grid.grid_dimensions[0] * data.grid.grid_dimensions[1] * data.grid.grid_dimensions[2] << '\n';
     std::cout << "Block size: " << data.grid.block_dimensions[0] << " x " << data.grid.block_dimensions[1] << " x " << data.grid.block_dimensions[2] << '\n';
-
 }
 
 int setParticleData(const std::string& inputFile, SimulationData& data){
@@ -183,10 +163,9 @@ void addParticleToBlock(const Particle& particle, Grid& grid, const std::vector<
     }
 }
 
-int initiateSimulation(const std::string& n_iterations, const std::string& inputFile) {
+int initiateSimulation(const std::string& n_iterations, const std::string& inputFile, const std::string& outputFile) {
     auto start = std::chrono::high_resolution_clock::now();
     std::ifstream input_file = openFile(inputFile);
-    if(!input_file){throwException("Cannot open " + inputFile + " for reading", -3);}
 
     const int n_iterations_int = std::stoi(n_iterations);
 
@@ -209,6 +188,6 @@ int initiateSimulation(const std::string& n_iterations, const std::string& input
     if (num_particles != real_particles) {throwException("Error: Number of particles mismatch. Header:  " + std::to_string(num_particles) +", Found: " + std::to_string(real_particles),-5); } //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 
     for (int i = 0; i < n_iterations_int; ++i) {processSimulation(data);}
-    //Cuando se acaban todas las iteraciones de process simulation
+    writeParticleData(outputFile, data);
     return 0;
 }
