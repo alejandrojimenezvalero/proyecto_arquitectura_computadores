@@ -83,37 +83,39 @@ void initAdjIndexVectorBlocks(Grid& grid) {
 
 
 void checkBlockIndex(int &index_i, int & index_j, int & index_k, Grid& grid){
-  index_i = (index_i < 0)? 0:index_i;
-  index_i = (index_i > grid.grid_dimensions[0] - 1) ? static_cast<int>(grid.grid_dimensions[0]) - 1 : index_i;
-  index_j = (index_j < 0)? 0: index_j;
-  index_j = (index_j > grid.grid_dimensions[1] - 1) ? static_cast<int>(grid.grid_dimensions[1]) - 1 : index_j;
-  index_k = (index_k < 0)? 0: index_k;
-  index_k = (index_k > grid.grid_dimensions[2] - 1) ? static_cast<int>(grid.grid_dimensions[2]) - 1 : index_k;
+    index_i = (index_i < 0)? 0:index_i;
+    index_i = (index_i > grid.grid_dimensions[0] - 1) ? static_cast<int>(grid.grid_dimensions[0]) - 1 : index_i;
+    index_j = (index_j < 0)? 0: index_j;
+    index_j = (index_j > grid.grid_dimensions[1] - 1) ? static_cast<int>(grid.grid_dimensions[1]) - 1 : index_j;
+    index_k = (index_k < 0)? 0: index_k;
+    index_k = (index_k > grid.grid_dimensions[2] - 1) ? static_cast<int>(grid.grid_dimensions[2]) - 1 : index_k;
 }
 void calculateParameters(double ppm, int np, SimulationData& data) {
-  const double smoothing_length = RADIO_MULTIPLICATOR / ppm;
-  const double particle_mass = FLUID_DENSITY / pow(ppm, 3);
-  initGrid(data.grid, smoothing_length);
-  calculateBlockSize(data.grid);
-  data.smoothing_length= smoothing_length; data.particle_mass= particle_mass;
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  data.smoothing_length_2 = pow(data.smoothing_length, 2);
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  data.smoothing_length_6 = pow(smoothing_length, 6);
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  data.smoothing_length_9 = pow(smoothing_length, 9);
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  data.escalar_pos  = (15 / (simulationConstants::PI * data.smoothing_length_6)) * ((3 * particle_mass * simulationConstants::STIFFNESS_PRESSURE) / 2);
-  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  data.escalar_vel = (45 / (simulationConstants::PI * data.smoothing_length_6));
+    const double smoothing_length = RADIO_MULTIPLICATOR / ppm;
+    const double particle_mass = FLUID_DENSITY / pow(ppm, 3);
+    initGrid(data.grid, smoothing_length);
+    calculateBlockSize(data.grid);
+    data.smoothing_length= smoothing_length; data.particle_mass= particle_mass;
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    data.smoothing_length_2 = pow(data.smoothing_length, 2);
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    data.smoothing_length_6 = pow(smoothing_length, 6);
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    data.smoothing_length_9 = pow(smoothing_length, 9);
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    data.escalar_pos  = (15 / (simulationConstants::PI * data.smoothing_length_6)) * ((3 * particle_mass * simulationConstants::STIFFNESS_PRESSURE) / 2);
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    data.escalar_vel = (45 / (simulationConstants::PI * data.smoothing_length_6));
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
+    data.escalar_density = (315/(64*PI*data.smoothing_length_9)) * data.particle_mass;
 
-  std::cout << "Number of particles: " << np << '\n';
-  std::cout << "Particles per meter: " << ppm << '\n';
-  std::cout << "Smoothing length: " << smoothing_length << '\n';
-  std::cout << "Particle mass: " << particle_mass << '\n';
-  std::cout << "Grid size: " << data.grid.grid_dimensions[0] << " x " << data.grid.grid_dimensions[1] << " x " << data.grid.grid_dimensions[2] << '\n';
-  std::cout << "Number of blocks: " << data.grid.grid_dimensions[0] * data.grid.grid_dimensions[1] * data.grid.grid_dimensions[2] << '\n';
-  std::cout << "Block size: " << data.grid.block_dimensions[0] << " x " << data.grid.block_dimensions[1] << " x " << data.grid.block_dimensions[2] << '\n';
+    std::cout << "Number of particles: " << np << '\n';
+    std::cout << "Particles per meter: " << ppm << '\n';
+    std::cout << "Smoothing length: " << smoothing_length << '\n';
+    std::cout << "Particle mass: " << particle_mass << '\n';
+    std::cout << "Grid size: " << data.grid.grid_dimensions[0] << " x " << data.grid.grid_dimensions[1] << " x " << data.grid.grid_dimensions[2] << '\n';
+    std::cout << "Number of blocks: " << data.grid.grid_dimensions[0] * data.grid.grid_dimensions[1] * data.grid.grid_dimensions[2] << '\n';
+    std::cout << "Block size: " << data.grid.block_dimensions[0] << " x " << data.grid.block_dimensions[1] << " x " << data.grid.block_dimensions[2] << '\n';
 }
 
 int setParticleData(const std::string& inputFile, SimulationData& data){

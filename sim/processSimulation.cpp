@@ -28,7 +28,7 @@ double calculateNorm(const std::vector<double>& particlei, const std::vector<dou
     return sumOfSquares;
 }
 void transformDensity(Particle& particle, const SimulationData& data){
-  particle.density = (particle.density + data.smoothing_length_6) * (315/(64*PI*data.smoothing_length_9)) * data.particle_mass;
+  particle.density = (particle.density + data.smoothing_length_6) * data.escalar_density;
 }
 
 void transferAcceleration(Particle& particlei, Particle& particlej, double& dist, const SimulationData& data) {
@@ -54,7 +54,7 @@ void updateBlocksDensity(SimulationData& data){
     //int c=0; int k= 0;
     for(Block& block: data.grid.grid_blocks){
         for (Particle& particle: block.block_particles){
-            for(int index_adj:block.adj_index_vector_blocks){
+            for(const int index_adj:block.adj_index_vector_blocks){
                 Block& adj_block = data.grid.grid_blocks[index_adj];
                 //cout << "index_adj: " << index_adj[0] << ", " << index_adj[1] << ", " << index_adj[2] << ", " <<'\n';
                 //cout << "index_block: " << block.second.block_index[0] << ", " << block.second.block_index[1] << ", " << block.second.block_index[2] << ", " <<'\n';
@@ -67,7 +67,7 @@ void updateBlocksDensity(SimulationData& data){
                             norm_2 = calculateNorm(particle.pos, adj_particle.pos);
                             //c+=1;
                             if(norm_2<data.smoothing_length_2){
-                                double added_norm = std::pow((data.smoothing_length_2-norm_2),3);
+                                const double added_norm = std::pow((data.smoothing_length_2-norm_2),3);
                                 //if (particle.id == 204 ){cout << "Particle: " << particle.density << '\n';}
                                 //if (adj_particle.id == 204){cout << "Adj_Particle: " << adj_particle.density << '\n';}
                                 particle.density += added_norm, adj_particle.density += added_norm;
@@ -147,7 +147,7 @@ double calcVariation(int& index_block, double& cordParticle, const SimulationDat
 }
 void calcAcceleration(Particle& particle, double& var, SimulationData& data, int& index){
     double v;
-    int cordBlock = calcParticleIndex(particle, data.grid)[index];
+    const int cordBlock = calcParticleIndex(particle, data.grid)[index];
     v = particle.vel[index];
     if(cordBlock == 0){
         particle.acceleration[index] += (STIFFNESS_COLLISIONS*var - DAMPING*v);
@@ -218,10 +218,7 @@ void removeParticlesFromBlock(Block& block, std::vector<Particle>& particles_to_
 
 void updateParticleBlockBelonging(SimulationData& data){
     vector<int> new_block_particle_index;
-    std::vector<int>old_block_index;
-    std::vector<int>check_block_index{1,0,7};
     for(Block& current_block:data.grid.grid_blocks){
-        old_block_index = current_block.block_index;
         std::vector<Particle> particles_to_remove{};
         for (Particle& particle: current_block.block_particles){
             particle.density = 0.0;
@@ -229,8 +226,8 @@ void updateParticleBlockBelonging(SimulationData& data){
             particle.acceleration[0] = 0.0; particle.acceleration[1] = -9.8; particle.acceleration[2] = 0.0;
             particle.acceleration_updated = false;
             new_block_particle_index = calcParticleIndex(particle, data.grid);
-            if (new_block_particle_index != old_block_index){
-                int index_in_vector = calcParticleIndexVector(particle, data.grid);
+            if (new_block_particle_index != current_block.block_index){
+                const int index_in_vector = calcParticleIndexVector(particle, data.grid);
                 //if (particle.id == 204){cout << "Id Block 204: " << new_block_particle_index[0] << ", " << new_block_particle_index[1] << ", " << new_block_particle_index[2] << '\n';}
                 //cout << "here " << particle.id <<'\n';
                 // añadir a new_block_particles

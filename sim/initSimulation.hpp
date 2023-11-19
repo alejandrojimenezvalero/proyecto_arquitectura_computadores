@@ -22,6 +22,7 @@ struct SimulationData{
     double particle_mass;
     double escalar_pos;
     double escalar_vel;
+    double escalar_density;
 
     SimulationData(Grid& initialGrid)
             :grid(initialGrid), smoothing_length(0.0), particle_mass(0.0){}
