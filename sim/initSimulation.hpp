@@ -14,15 +14,27 @@
 #include <memory>
 
 struct SimulationData{
-    gridSize grid;
+    Grid& grid;
     double smoothing_length;
+    double smoothing_length_2;
+    double smoothing_length_6;
+    double smoothing_length_9;
     double particle_mass;
-    bool all_particles_density_updated;
+    double escalar_pos;
+    double escalar_vel;
+    double escalar_density;
+
+    SimulationData(Grid& initialGrid)
+            :grid(initialGrid), smoothing_length(0.0), particle_mass(0.0){}
 };
-std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> createMap(SimulationData data);
-int checkBlockIndex(int &i, int &j, int &k, SimulationData data);
-SimulationData calculateParameters(double ppm, int np);
-std::tuple< int, std::map<std::vector<int>, std::shared_ptr<std::vector<Particle>>> > setParticleData(const std::string& inputFile, SimulationData data);
+
+void createGridBlocks(Grid& grid);
+void initAdjIndexVectorBlocks(Grid& grid);
+void checkBlockIndex(int &i, int & index_j, int & index_k, Grid& grid);
+void calculateParameters(double ppm, int np, SimulationData& data);
+int setParticleData(const std::string& inputFile, SimulationData& data);
 int initiateSimulation(const std::string& n_iterations, const std::string& inputFile);
+void readParticleFields(std::ifstream& input_file, Particle& particle);
+void addParticleToBlock(const Particle& particle, Grid& grid, const std::vector<int>& particle_block_index);
 
 #endif  // FLUID_INITSIMULATION_HPP

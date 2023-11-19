@@ -2,11 +2,9 @@
 #include <iostream>
 #include <string>
 
-void throwException(const std::string& errorMessage){
-  throw std::runtime_error(errorMessage);
-}
-int exceptionHandler(bool condition, const std::string& errorMessage) {
-  if (condition) {throwException(errorMessage);}
-  return 0;
-}
+#include <cstdlib>  // For exit()
 
+void throwException(const std::string& errorMessage, int exitCode) {
+  std::cerr << errorMessage << "\n";
+  exit(exitCode);
+}
