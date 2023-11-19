@@ -22,8 +22,7 @@ using namespace simulationConstants;
 double calculateNorm(const std::vector<double>& particlei, const std::vector<double>& particlej) {
     double sumOfSquares = 0.0;
     for (int i = 0; i < 3; i++) {
-        double diff = particlei[i] - particlej[i];
-        sumOfSquares += diff * diff;
+        sumOfSquares += (particlei[i] - particlej[i])*(particlei[i] - particlej[i]);
     }
     return sumOfSquares;
 }
@@ -31,18 +30,19 @@ void transformDensity(Particle& particle, const SimulationData& data){
   particle.density = (particle.density + data.smoothing_length_6) * data.escalar_density;
 }
 
-void transferAcceleration(Particle& particlei, Particle& particlej, double& dist, const SimulationData& data) {
+void transferAcceleration(Particle& particlei, Particle& particlej, const double& dist, const SimulationData& data) {
     const double escalar_pos = data.escalar_pos *
                                ((std::pow(data.smoothing_length - dist, 2)) / dist) * (particlei.density + particlej.density - 2 * simulationConstants::FLUID_DENSITY);
     const double escalar_vel = data.escalar_vel * simulationConstants::VISCOSITY * data.particle_mass;
+    const double density_product = particlei.density * particlej.density;
 
     std::vector<double> diff_pos = {particlei.pos[0] - particlej.pos[0], particlei.pos[1] - particlej.pos[1], particlei.pos[2] - particlej.pos[2]};
     std::vector<double> diff_vel = {particlej.vel[0] - particlei.vel[0], particlej.vel[1] - particlei.vel[1], particlej.vel[2] - particlei.vel[2]};
 
     std::vector<double> variation_acc = {
-            (diff_pos[0] * escalar_pos + diff_vel[0] * escalar_vel) / (particlei.density * particlej.density),
-            (diff_pos[1] * escalar_pos + diff_vel[1] * escalar_vel) / (particlei.density * particlej.density),
-            (diff_pos[2] * escalar_pos + diff_vel[2] * escalar_vel) / (particlei.density * particlej.density)
+            (diff_pos[0] * escalar_pos + diff_vel[0] * escalar_vel) / (density_product),
+            (diff_pos[1] * escalar_pos + diff_vel[1] * escalar_vel) / (density_product),
+            (diff_pos[2] * escalar_pos + diff_vel[2] * escalar_vel) / (density_product)
     };
 
     particlei.acceleration = {particlei.acceleration[0] + variation_acc[0], particlei.acceleration[1] + variation_acc[1], particlei.acceleration[2] + variation_acc[2]};
@@ -50,7 +50,6 @@ void transferAcceleration(Particle& particlei, Particle& particlej, double& dist
 }
 
 void updateBlocksDensity(SimulationData& data){
-    double norm_2;
     //int c=0; int k= 0;
     for(Block& block: data.grid.grid_blocks){
         for (Particle& particle: block.block_particles){
@@ -64,7 +63,7 @@ void updateBlocksDensity(SimulationData& data){
 
                         //k+=1;
                         if (!adj_particle.density_updated && particle.id != adj_particle.id){
-                            norm_2 = calculateNorm(particle.pos, adj_particle.pos);
+                            double norm_2 = calculateNorm(particle.pos, adj_particle.pos);
                             //c+=1;
                             if(norm_2<data.smoothing_length_2){
                                 const double added_norm = std::pow((data.smoothing_length_2-norm_2),3);
@@ -93,7 +92,6 @@ void updateBlocksDensity(SimulationData& data){
     //cout << "k: " << k << '\n';
 }
 void updateBlocksAcceleration(SimulationData& data){
-    double norm_2, dist;
     for(Block& block: data.grid.grid_blocks){
         for (Particle& particle: block.block_particles){
             for(int index_adj:block.adj_index_vector_blocks){
@@ -107,9 +105,9 @@ void updateBlocksAcceleration(SimulationData& data){
                     for(Particle& adj_particle: adj_block.block_particles){
 
                         if (!adj_particle.acceleration_updated && particle.id != adj_particle.id) {
-                            norm_2 = calculateNorm(particle.pos, adj_particle.pos);
+                            const double norm_2 = calculateNorm(particle.pos, adj_particle.pos);
                             if (norm_2 < data.smoothing_length_2) {
-                                dist = sqrt(max(norm_2, MINIMUM_DISTANCE));
+                                const double dist = sqrt(max(norm_2, MINIMUM_DISTANCE));
                                 transferAcceleration(particle, adj_particle, dist, data);
                             }
                         }
@@ -131,11 +129,10 @@ void updateBlocksAcceleration(SimulationData& data){
     //cout << "k: " << k << '\n';
 }
 double calcCord(Particle& particle, int index){
-    double cord;
-    cord = particle.pos[index] + particle.hv[index]*TIMESTAMP;
+    const double cord = particle.pos[index] + particle.hv[index]*TIMESTAMP;
     return cord;
 }
-double calcVariation(int& index_block, double& cordParticle, const SimulationData& data, int& index){
+double calcVariation(int& index_block, const double& cordParticle, const SimulationData& data, int& index){
     double var = 0.0;
     if(index_block == 0){
         var = PARTICLE_SIZE - (cordParticle - LOWER_LIMIT[index]);
@@ -145,10 +142,9 @@ double calcVariation(int& index_block, double& cordParticle, const SimulationDat
     }
     return var;
 }
-void calcAcceleration(Particle& particle, double& var, SimulationData& data, int& index){
-    double v;
+void calcAcceleration(Particle& particle, const double& var, SimulationData& data, int& index){
+    const double v = particle.vel[index];
     const int cordBlock = calcParticleIndex(particle, data.grid)[index];
-    v = particle.vel[index];
     if(cordBlock == 0){
         particle.acceleration[index] += (STIFFNESS_COLLISIONS*var - DAMPING*v);
     }
@@ -217,34 +213,88 @@ void removeParticlesFromBlock(Block& block, std::vector<Particle>& particles_to_
 }*/
 
 void updateParticleBlockBelonging(SimulationData& data){
-    vector<int> new_block_particle_index;
+    //auto start = std::chrono::high_resolution_clock::now();
+    //auto second_for = std::chrono::microseconds(0);
+    //auto total_remove_time = std::chrono::microseconds(0);
+    //auto total_push_back_new = std::chrono::microseconds(0);
+    //auto total_calc_particle_index = std::chrono::microseconds(0);
+    //auto total_reset_parameters = std::chrono::microseconds(0);
+    //auto total_index_in_vector = std::chrono::microseconds(0);
+    //auto total_push_back_to_remove = std::chrono::microseconds(0);
+    //auto total_if = std::chrono::microseconds(0);
     for(Block& current_block:data.grid.grid_blocks){
+        const vector<int>& current_block_index = current_block.block_index;
         std::vector<Particle> particles_to_remove{};
+        //auto start9 = std::chrono::high_resolution_clock::now();
         for (Particle& particle: current_block.block_particles){
+            //auto start7 = std::chrono::high_resolution_clock::now();
+            const vector<int>& new_block_particle_index = calcParticleIndex(particle, data.grid);
+            //auto end7 = std::chrono::high_resolution_clock::now();
+            //auto duration7 = std::chrono::duration_cast<std::chrono::microseconds>(end7 - start7);
+            //total_calc_particle_index += duration7;
+            //auto start8 = std::chrono::high_resolution_clock::now();
             particle.density = 0.0;
             particle.density_updated = false;
             particle.acceleration[0] = 0.0; particle.acceleration[1] = -9.8; particle.acceleration[2] = 0.0;
             particle.acceleration_updated = false;
-            new_block_particle_index = calcParticleIndex(particle, data.grid);
-            if (new_block_particle_index != current_block.block_index){
+            //auto end8 = std::chrono::high_resolution_clock::now();
+            //auto duration8 = std::chrono::duration_cast<std::chrono::microseconds>(end8 - start8);
+            //total_reset_parameters += duration8;
+            //auto start12 = std::chrono::high_resolution_clock::now();
+            if (new_block_particle_index != current_block_index){
+                //auto start10 = std::chrono::high_resolution_clock::now();
                 const int index_in_vector = calcParticleIndexVector(particle, data.grid);
+                //auto end10 = std::chrono::high_resolution_clock::now();
+                //auto duration10 = std::chrono::duration_cast<std::chrono::microseconds>(end10 - start10);
+                //total_index_in_vector += duration10;
                 //if (particle.id == 204){cout << "Id Block 204: " << new_block_particle_index[0] << ", " << new_block_particle_index[1] << ", " << new_block_particle_index[2] << '\n';}
                 //cout << "here " << particle.id <<'\n';
                 // añadir a new_block_particles
+                //auto start6 = std::chrono::high_resolution_clock::now();
                 data.grid.grid_blocks[index_in_vector].block_particles.push_back(particle);
+                //auto end6 = std::chrono::high_resolution_clock::now();
+                //auto duration6 = std::chrono::duration_cast<std::chrono::microseconds>(end6 - start6);
+                //total_push_back_new += duration6;
                 // eliminar de old_block_particles
+                //auto start11 = std::chrono::high_resolution_clock::now();
                 particles_to_remove.push_back(particle);
+                //auto end11 = std::chrono::high_resolution_clock::now();
+                //auto duration11 = std::chrono::duration_cast<std::chrono::microseconds>(end11 - start11);
+                //total_push_back_to_remove += duration11;
             }
-
+            //auto end12 = std::chrono::high_resolution_clock::now();
+            //auto duration12 = std::chrono::duration_cast<std::chrono::microseconds>(end12 - start12);
+            //total_if += duration12;
         }
+        //auto end9 = std::chrono::high_resolution_clock::now();
+        //auto duration9 = std::chrono::duration_cast<std::chrono::microseconds>(end9 - start9);
+        //second_for += duration9;
         current_block.updated_density=false;
         current_block.updated_acceleration=false;
-        if(!particles_to_remove.empty()){removeParticlesFromBlock(current_block, particles_to_remove);}
+        //auto start5 = std::chrono::high_resolution_clock::now();
+        if (!particles_to_remove.empty()) {
+            removeParticlesFromBlock(current_block, particles_to_remove);
+        }
+        //auto end5 = std::chrono::high_resolution_clock::now();
+        //auto duration5 = std::chrono::duration_cast<std::chrono::microseconds>(end5 - start5);
+
+        //total_remove_time += duration5;
+
+        //std::cout << "remove: " << duration5.count() << '\n';
     }
+    //auto end = std::chrono::high_resolution_clock::now();
+    //auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    //std::cout << "Total time: " << duration.count() << "\n";
+    //std::cout << "Total second for: " << second_for.count() << "\n";
+    //std::cout << "Total remove time: " << total_remove_time.count() << "\n";
+    //std::cout << "Total pushback new: " << total_push_back_new.count() << "\n";
+    //std::cout << "Total calc particle index: " << total_calc_particle_index.count() << "\n";
+    //std::cout << "Total reset parameters: " << total_reset_parameters.count() << "\n";
+    //std::cout << "Total index in vector: " << total_index_in_vector.count() << "\n";
+    //std::cout << "Total pushback remove: " << total_push_back_to_remove.count() << "\n";
+    //std::cout << "Total if: " << total_if.count() << "\n";
 }
 void updateParticle(std::vector<int>& block_index, Particle& particle, SimulationData& data){
-    double cord, var;
-    std::vector<double> ngrids{data.grid.grid_dimensions[0], data.grid.grid_dimensions[1], data.grid.grid_dimensions[2]};
     // Aqui esta la salida del fichero partcol-base
     /*if (particle.id == 2229) {
         cout << "---------------------------------" << '\n';
@@ -265,8 +315,8 @@ void updateParticle(std::vector<int>& block_index, Particle& particle, Simulatio
         checkBorderLimits(particle, data, i, block_index[i]);
     }*/
     for(int i=0; i < 3 ; ++i) {
-        cord = calcCord(particle, i);
-        var = calcVariation(block_index[i], cord, data, i);
+        const double cord = calcCord(particle, i);
+        const double var = calcVariation(block_index[i], cord, data, i);
         if (var > MINIMUM_VARIATION) { calcAcceleration(particle, var, data, i);}
     }
     /*if (particle.id == 2229) {
@@ -300,14 +350,14 @@ void updateParticle(std::vector<int>& block_index, Particle& particle, Simulatio
         checkBorderLimits(particle, data, i, block_index[i]);
     }
     // Aqui está la salida del fichero boundint-base
-    if (particle.id == 2229) {
+    /*if (particle.id == 2229) {
         cout << "Density after limit process: " << particle.density << '\n';
         cout << "Pos after limit process: "  << particle.pos[0] << ", " << particle.pos[1] << ", " << particle.pos[2] << '\n';
         cout << "Hv after limit process: "  << particle.hv[0] << ", " << particle.hv[1] << ", " << particle.hv[2] << '\n';
         cout << "V after limit process: "  << particle.vel[0] << ", " << particle.vel[1] << ", " << particle.vel[2] << '\n';
         cout << "Acc after limit process: "  << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';
         cout << "---------------------------------" << '\n';
-    }
+    }*/
 }
 
 void establishParticleFunctionality(SimulationData& data){
@@ -344,9 +394,11 @@ int processSimulation(SimulationData& data){
 
     //std::cout << "-----------END ACCELERATION---------------" << '\n';
 
-
+    //auto start4 = std::chrono::high_resolution_clock::now();
     establishParticleFunctionality(data);
-
+    //auto end4 = std::chrono::high_resolution_clock::now();
+    //auto duration4 = std::chrono::duration_cast<std::chrono::microseconds>(end4 - start4);
+    //std::cout << "establishParticleFunctionality: " << duration4.count() << '\n';
 
     //initializeDensityAcceleration(data);
     //std::cout << "-----------END ITERATION---------------" << '\n';
