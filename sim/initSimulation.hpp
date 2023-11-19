@@ -23,9 +23,12 @@ struct SimulationData{
     double ppm;
     double np;
     bool all_particles_density_updated;
+    double escalar_pos;
+    double escalar_vel;
+    double escalar_density;
 
     SimulationData(Grid& initialGrid)
-            :grid(initialGrid), smoothing_length(0.0), particle_mass(0.0), all_particles_density_updated(false) {}
+            :grid(initialGrid), smoothing_length(0.0), particle_mass(0.0){}
 };
 
 void createGridBlocks(Grid& grid);
