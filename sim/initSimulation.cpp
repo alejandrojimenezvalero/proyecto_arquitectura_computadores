@@ -145,7 +145,7 @@ int setParticleData(const std::string& inputFile, SimulationData& data){
         }
     if (data.np != real_particles) {throwException("Error: Number of particles mismatch. Header:  " + std::to_string(data.np) +", Found: " + std::to_string(real_particles),-5); } //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 
-    return real_particles;
+    return 0;
 }
 
 void readParticleFields(std::ifstream& input_file, Particle& particle) {
@@ -183,7 +183,7 @@ int initiateSimulation(const std::string& n_iterations, const std::string& input
     SimulationData data(grid);
     calculateParameters(ppm, num_particles, data);
 
-    const int real_particles = setParticleData(inputFile, data);
+    setParticleData(inputFile, data);
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     std::cout << "Init: " << duration.count() << '\n';
