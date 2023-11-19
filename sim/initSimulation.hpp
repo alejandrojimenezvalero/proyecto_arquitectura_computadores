@@ -20,6 +20,8 @@ struct SimulationData{
     double smoothing_length_6;
     double smoothing_length_9;
     double particle_mass;
+    double ppm;
+    double np;
     bool all_particles_density_updated;
 
     SimulationData(Grid& initialGrid)

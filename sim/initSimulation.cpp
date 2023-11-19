@@ -101,7 +101,8 @@ void calculateParameters(double ppm, int np, SimulationData& data) {
   data.smoothing_length_6 = pow(smoothing_length, 6);
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   data.smoothing_length_9 = pow(smoothing_length, 9);
-
+  data.ppm = ppm;
+  data.np = np;
   std::cout << "Number of particles: " << np << '\n';
   std::cout << "Particles per meter: " << ppm << '\n';
   std::cout << "Smoothing length: " << smoothing_length << '\n';
@@ -181,6 +182,6 @@ int initiateSimulation(const std::string& n_iterations, const std::string& input
     if (num_particles != real_particles) {throwException("Error: Number of particles mismatch. Header:  " + std::to_string(num_particles) +", Found: " + std::to_string(real_particles),-5); } //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 
     for (int i = 0; i < n_iterations_int; ++i) {processSimulation(data);}
-
+    //Cuando se acaban todas las iteraciones de process simulation
     return 0;
 }

@@ -16,7 +16,6 @@ int main(int argc, char *argv[]){
     vector<string> const arguments{args_view.begin() + 1, args_view.end()};
     validateParameters(arguments);
     initiateSimulation(arguments[0], arguments[1]);
-
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     std::cout << duration.count()/1000000 << '\n';
