@@ -59,8 +59,7 @@ std::vector<int> calcParticleIndex(Particle& particle, Grid& grid){
     return particle_block_index;
 }
 
-int calcParticleIndexVector(Particle& particle, Grid& grid){
-    std::vector<int> block_cords = calcParticleIndex(particle, grid);
+int calcParticleIndexVector(Grid& grid, const std::vector<int>& block_cords){
     int index_in_vector = grid.adjacent_index_map[block_cords];
     return index_in_vector;
 }

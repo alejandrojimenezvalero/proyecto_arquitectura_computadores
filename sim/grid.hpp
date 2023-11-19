@@ -18,6 +18,6 @@ struct Grid{
 void calculateBlockSize(Grid& grid);
 void initGrid(Grid& grid, double smoothing_length);
 std::vector<int> calcParticleIndex(Particle& particle, Grid& grid);
-int calcParticleIndexVector(Particle& particle, Grid& grid);
+int calcParticleIndexVector(Grid& grid, const std::vector<int>& block_cords);
 bool blockExists(int i, int j, int k, Grid& grid);
 #endif

@@ -243,7 +243,7 @@ void updateParticleBlockBelonging(SimulationData& data){
             //auto start12 = std::chrono::high_resolution_clock::now();
             if (new_block_particle_index != current_block_index){
                 //auto start10 = std::chrono::high_resolution_clock::now();
-                const int index_in_vector = calcParticleIndexVector(particle, data.grid);
+                const int index_in_vector = calcParticleIndexVector(data.grid, new_block_particle_index);
                 //auto end10 = std::chrono::high_resolution_clock::now();
                 //auto duration10 = std::chrono::duration_cast<std::chrono::microseconds>(end10 - start10);
                 //total_index_in_vector += duration10;
