@@ -17,6 +17,9 @@ add_library(sim
         particle.hpp
         processSimulation.cpp
         processSimulation.hpp
+        simulationResults.cpp
+        simulationResults.hpp
+        simulationResults.cpp
 )
 # Use this line only if you have dependencies from stim to GSL
 target_link_libraries(sim PRIVATE Microsoft.GSL::GSL)

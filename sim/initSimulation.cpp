@@ -8,6 +8,7 @@
 #include "grid.hpp"
 #include "particle.hpp"
 #include "processSimulation.hpp"
+#include "simulationResults.hpp"
 
 #include <cmath>
 #include <fstream>
@@ -108,7 +109,7 @@ void calculateParameters(double ppm, int np, SimulationData& data) {
     data.escalar_vel = (45 / (simulationConstants::PI * data.smoothing_length_6));
     // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     data.escalar_density = (315/(64*PI*data.smoothing_length_9)) * data.particle_mass;
-
+    data.np = np; data.ppm = ppm;
     std::cout << "Number of particles: " << np << '\n';
     std::cout << "Particles per meter: " << ppm << '\n';
     std::cout << "Smoothing length: " << smoothing_length << '\n';
@@ -162,10 +163,9 @@ void addParticleToBlock(const Particle& particle, Grid& grid, const std::vector<
     }
 }
 
-int initiateSimulation(const std::string& n_iterations, const std::string& inputFile) {
+int initiateSimulation(const std::string& n_iterations, const std::string& inputFile, const std::string& outputFile) {
     auto start = std::chrono::high_resolution_clock::now();
     std::ifstream input_file = openFile(inputFile);
-    if(!input_file){throwException("Cannot open " + inputFile + " for reading", -3);}
 
     const int n_iterations_int = std::stoi(n_iterations);
 
@@ -188,6 +188,6 @@ int initiateSimulation(const std::string& n_iterations, const std::string& input
     if (num_particles != real_particles) {throwException("Error: Number of particles mismatch. Header:  " + std::to_string(num_particles) +", Found: " + std::to_string(real_particles),-5); } //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 
     for (int i = 0; i < n_iterations_int; ++i) {processSimulation(data);}
-
+    writeParticleData(outputFile, data);
     return 0;
 }
