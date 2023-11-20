@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <algorithm>
 
 void sortParticlesById(std::vector<Particle>& particles) {
   std::sort(particles.begin(), particles.end(), [](const Particle& a, const Particle& b) {
