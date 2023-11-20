@@ -78,6 +78,7 @@ void updateBlocksDensity(SimulationData& data){
             }
             transformDensity(particle, data);
             particle.density_updated = true;
+            particle.already_checked = false;
             //cout << "Id: "<< particle.id << ", Density: " << particle.density << '\n';
 
             /*if (particle.id == 204){
@@ -227,44 +228,48 @@ void updateParticleBlockBelonging(SimulationData& data){
         std::vector<Particle> particles_to_remove{};
         //auto start9 = std::chrono::high_resolution_clock::now();
         for (Particle& particle: current_block.block_particles){
-            //auto start7 = std::chrono::high_resolution_clock::now();
-            const vector<int>& new_block_particle_index = calcParticleIndex(particle, data.grid);
-            //auto end7 = std::chrono::high_resolution_clock::now();
-            //auto duration7 = std::chrono::duration_cast<std::chrono::microseconds>(end7 - start7);
-            //total_calc_particle_index += duration7;
-            //auto start8 = std::chrono::high_resolution_clock::now();
-            particle.density = 0.0;
-            particle.density_updated = false;
-            particle.acceleration[0] = 0.0; particle.acceleration[1] = -9.8; particle.acceleration[2] = 0.0;
-            particle.acceleration_updated = false;
-            //auto end8 = std::chrono::high_resolution_clock::now();
-            //auto duration8 = std::chrono::duration_cast<std::chrono::microseconds>(end8 - start8);
-            //total_reset_parameters += duration8;
-            //auto start12 = std::chrono::high_resolution_clock::now();
-            if (new_block_particle_index != current_block_index){
-                //auto start10 = std::chrono::high_resolution_clock::now();
-                const int index_in_vector = calcParticleIndexVector(data.grid, new_block_particle_index);
-                //auto end10 = std::chrono::high_resolution_clock::now();
-                //auto duration10 = std::chrono::duration_cast<std::chrono::microseconds>(end10 - start10);
-                //total_index_in_vector += duration10;
-                //if (particle.id == 204){cout << "Id Block 204: " << new_block_particle_index[0] << ", " << new_block_particle_index[1] << ", " << new_block_particle_index[2] << '\n';}
-                //cout << "here " << particle.id <<'\n';
-                // añadir a new_block_particles
-                //auto start6 = std::chrono::high_resolution_clock::now();
-                data.grid.grid_blocks[index_in_vector].block_particles.push_back(particle);
-                //auto end6 = std::chrono::high_resolution_clock::now();
-                //auto duration6 = std::chrono::duration_cast<std::chrono::microseconds>(end6 - start6);
-                //total_push_back_new += duration6;
-                // eliminar de old_block_particles
-                //auto start11 = std::chrono::high_resolution_clock::now();
-                particles_to_remove.push_back(particle);
-                //auto end11 = std::chrono::high_resolution_clock::now();
-                //auto duration11 = std::chrono::duration_cast<std::chrono::microseconds>(end11 - start11);
-                //total_push_back_to_remove += duration11;
+            if(!particle.already_checked){
+                //auto start7 = std::chrono::high_resolution_clock::now();
+                const vector<int>& new_block_particle_index = calcParticleIndex(particle, data.grid);
+                //auto end7 = std::chrono::high_resolution_clock::now();
+                //auto duration7 = std::chrono::duration_cast<std::chrono::microseconds>(end7 - start7);
+                //total_calc_particle_index += duration7;
+                //auto start8 = std::chrono::high_resolution_clock::now();
+                particle.density = 0.0;
+                particle.density_updated = false;
+                particle.acceleration[0] = 0.0; particle.acceleration[1] = -9.8; particle.acceleration[2] = 0.0;
+                particle.acceleration_updated = false;
+                //auto end8 = std::chrono::high_resolution_clock::now();
+                //auto duration8 = std::chrono::duration_cast<std::chrono::microseconds>(end8 - start8);
+                //total_reset_parameters += duration8;
+                //auto start12 = std::chrono::high_resolution_clock::now();
+                if (new_block_particle_index != current_block_index){
+                    //auto start10 = std::chrono::high_resolution_clock::now();
+                    const int index_in_vector = calcParticleIndexVector(data.grid, new_block_particle_index);
+                    //auto end10 = std::chrono::high_resolution_clock::now();
+                    //auto duration10 = std::chrono::duration_cast<std::chrono::microseconds>(end10 - start10);
+                    //total_index_in_vector += duration10;
+                    //if (particle.id == 204){cout << "Id Block 204: " << new_block_particle_index[0] << ", " << new_block_particle_index[1] << ", " << new_block_particle_index[2] << '\n';}
+                    //cout << "here " << particle.id <<'\n';
+                    // añadir a new_block_particles
+                    //auto start6 = std::chrono::high_resolution_clock::now();
+                    particle.already_checked = true;
+                    data.grid.grid_blocks[index_in_vector].block_particles.push_back(particle);
+                    //auto end6 = std::chrono::high_resolution_clock::now();
+                    //auto duration6 = std::chrono::duration_cast<std::chrono::microseconds>(end6 - start6);
+                    //total_push_back_new += duration6;
+                    // eliminar de old_block_particles
+                    //auto start11 = std::chrono::high_resolution_clock::now();
+                    particles_to_remove.push_back(particle);
+                    //auto end11 = std::chrono::high_resolution_clock::now();
+                    //auto duration11 = std::chrono::duration_cast<std::chrono::microseconds>(end11 - start11);
+                    //total_push_back_to_remove += duration11;
+                }
+                //auto end12 = std::chrono::high_resolution_clock::now();
+                //auto duration12 = std::chrono::duration_cast<std::chrono::microseconds>(end12 - start12);
+                //total_if += duration12;
             }
-            //auto end12 = std::chrono::high_resolution_clock::now();
-            //auto duration12 = std::chrono::duration_cast<std::chrono::microseconds>(end12 - start12);
-            //total_if += duration12;
+
         }
         //auto end9 = std::chrono::high_resolution_clock::now();
         //auto duration9 = std::chrono::duration_cast<std::chrono::microseconds>(end9 - start9);

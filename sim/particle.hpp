@@ -14,6 +14,7 @@ struct Particle {
     double density = 0;
     bool density_updated = false;
     bool acceleration_updated = false;
+    bool already_checked = false;
     std::vector<double> acceleration = GRAVITY;
     Particle() : id(0), pos{0.0,0.0,0.0}, hv{0.0,0.0,0.0}, vel{0.0,0.0,0.0},
                  density(0.0), density_updated(false), acceleration_updated(false),
