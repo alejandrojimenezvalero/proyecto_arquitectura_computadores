@@ -160,7 +160,7 @@ void readParticleFields(std::ifstream& input_file, Particle& particle) {
 void addParticleToBlock(const Particle& particle, Grid& grid, const std::vector<int>& particle_block_index) {
     for (Block& block : grid.grid_blocks) {
         if (block.block_index == particle_block_index) {
-            block.block_particles.push_back(particle);
+            block.block_particles_v1.push_back(particle);
         }
     }
 }

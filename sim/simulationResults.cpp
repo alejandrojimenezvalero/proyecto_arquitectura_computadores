@@ -24,7 +24,7 @@ void writeParticleData(const std::string& filename, SimulationData data) {
     //Las particles las tenemos stored por bloques, por lo que almacenamos todas las particulas en un vector
     std::vector<Particle> grid_particles;
     for(auto block: data.grid.grid_blocks){
-        for(Particle particle: block.block_particles){
+        for(Particle particle: block.block_particles_v1){
             grid_particles.push_back(particle);
         }
     }

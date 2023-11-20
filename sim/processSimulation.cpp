@@ -52,14 +52,14 @@ void transferAcceleration(Particle& particlei, Particle& particlej, const double
 void updateBlocksDensity(SimulationData& data){
     //int c=0; int k= 0;
     for(Block& block: data.grid.grid_blocks){
-        for (Particle& particle: block.block_particles){
+        for (Particle& particle: block.block_particles_v2){
             for(const int index_adj:block.adj_index_vector_blocks){
                 Block& adj_block = data.grid.grid_blocks[index_adj];
                 //cout << "index_adj: " << index_adj[0] << ", " << index_adj[1] << ", " << index_adj[2] << ", " <<'\n';
                 //cout << "index_block: " << block.second.block_index[0] << ", " << block.second.block_index[1] << ", " << block.second.block_index[2] << ", " <<'\n';
                 if(!adj_block.updated_density){
                     //if (particle.id == 204 ){cout << "Particle 204: " << particle.density << '\n';}
-                    for(Particle& adj_particle: adj_block.block_particles){
+                    for(Particle& adj_particle: adj_block.block_particles_v2){
 
                         //k+=1;
                         if (!adj_particle.density_updated && particle.id != adj_particle.id){
@@ -70,6 +70,7 @@ void updateBlocksDensity(SimulationData& data){
                                 //if (particle.id == 204 ){cout << "Particle: " << particle.density << '\n';}
                                 //if (adj_particle.id == 204){cout << "Adj_Particle: " << adj_particle.density << '\n';}
                                 particle.density += added_norm, adj_particle.density += added_norm;
+
                             }
                         }
                     }
@@ -78,7 +79,6 @@ void updateBlocksDensity(SimulationData& data){
             }
             transformDensity(particle, data);
             particle.density_updated = true;
-            particle.already_checked = false;
             //cout << "Id: "<< particle.id << ", Density: " << particle.density << '\n';
 
             /*if (particle.id == 204){
@@ -94,7 +94,7 @@ void updateBlocksDensity(SimulationData& data){
 }
 void updateBlocksAcceleration(SimulationData& data){
     for(Block& block: data.grid.grid_blocks){
-        for (Particle& particle: block.block_particles){
+        for (Particle& particle: block.block_particles_v2){
             for(int index_adj:block.adj_index_vector_blocks){
                 Block& adj_block = data.grid.grid_blocks[index_adj];
                 //cout << "index_adj: " << index_adj[0] << ", " << index_adj[1] << ", " << index_adj[2] << ", " <<'\n';
@@ -103,7 +103,7 @@ void updateBlocksAcceleration(SimulationData& data){
                 if(!adj_block.updated_acceleration){
                     //c+=1;
                     //if (particle.id == 204 ){cout << "Particle 204: " << particle.density << '\n';}
-                    for(Particle& adj_particle: adj_block.block_particles){
+                    for(Particle& adj_particle: adj_block.block_particles_v2){
 
                         if (!adj_particle.acceleration_updated && particle.id != adj_particle.id) {
                             const double norm_2 = calculateNorm(particle.pos, adj_particle.pos);
@@ -194,16 +194,6 @@ void checkBorderLimits(Particle& particle, SimulationData& data, int index, int 
     }
 }
 
-void removeParticlesFromBlock(Block& block, std::vector<Particle>& particles_to_remove){
-    auto new_end = std::remove_if(block.block_particles.begin(), block.block_particles.end(),
-                                  [&](const Particle& particle) {
-                                      // La lambda devuelve true si la partícula está en particles_to_remove
-                                      return std::find(particles_to_remove.begin(), particles_to_remove.end(), particle) != particles_to_remove.end();
-                                  });
-
-    // Utilizar std::erase para eliminar las partículas trasladadas
-    block.block_particles.erase(new_end, block.block_particles.end());
-}
 /*void removeParticlesFromBlock(Block& block, const std::vector<Particle>& particles_to_remove) {
     // Utilizar la función erase-remove idiom para eliminar las partículas por igualdad de id
     block.block_particles.erase(std::remove_if(block.block_particles.begin(), block.block_particles.end(),
@@ -229,49 +219,48 @@ void updateParticleBlockBelonging(SimulationData& data){
         const vector<int>& current_block_index = current_block.block_index;
         std::vector<Particle> particles_to_remove{};
         //auto start9 = std::chrono::high_resolution_clock::now();
-        for (Particle& particle: current_block.block_particles){
-            if(!particle.already_checked){
-                //auto start7 = std::chrono::high_resolution_clock::now();
-                const vector<int>& new_block_particle_index = calcParticleIndex(particle, data.grid);
-                //auto end7 = std::chrono::high_resolution_clock::now();
-                //auto duration7 = std::chrono::duration_cast<std::chrono::microseconds>(end7 - start7);
-                //total_calc_particle_index += duration7;
-                //auto start8 = std::chrono::high_resolution_clock::now();
-                particle.density = 0.0;
-                particle.density_updated = false;
-                particle.acceleration[0] = 0.0; particle.acceleration[1] = -9.8; particle.acceleration[2] = 0.0;
-                particle.acceleration_updated = false;
-                //auto end8 = std::chrono::high_resolution_clock::now();
-                //auto duration8 = std::chrono::duration_cast<std::chrono::microseconds>(end8 - start8);
-                //total_reset_parameters += duration8;
-                //auto start12 = std::chrono::high_resolution_clock::now();
-                if (new_block_particle_index != current_block_index){
-                    //auto start10 = std::chrono::high_resolution_clock::now();
-                    const int index_in_vector = calcParticleIndexVector(data.grid, new_block_particle_index);
-                    //auto end10 = std::chrono::high_resolution_clock::now();
-                    //auto duration10 = std::chrono::duration_cast<std::chrono::microseconds>(end10 - start10);
-                    //total_index_in_vector += duration10;
-                    //if (particle.id == 204){cout << "Id Block 204: " << new_block_particle_index[0] << ", " << new_block_particle_index[1] << ", " << new_block_particle_index[2] << '\n';}
-                    //cout << "here " << particle.id <<'\n';
-                    // añadir a new_block_particles
-                    //auto start6 = std::chrono::high_resolution_clock::now();
-                    particle.already_checked = true;
-                    data.grid.grid_blocks[index_in_vector].block_particles.push_back(particle);
-                    //auto end6 = std::chrono::high_resolution_clock::now();
-                    //auto duration6 = std::chrono::duration_cast<std::chrono::microseconds>(end6 - start6);
-                    //total_push_back_new += duration6;
-                    // eliminar de old_block_particles
-                    //auto start11 = std::chrono::high_resolution_clock::now();
-                    particles_to_remove.push_back(particle);
-                    //auto end11 = std::chrono::high_resolution_clock::now();
-                    //auto duration11 = std::chrono::duration_cast<std::chrono::microseconds>(end11 - start11);
-                    //total_push_back_to_remove += duration11;
-                }
-                //auto end12 = std::chrono::high_resolution_clock::now();
-                //auto duration12 = std::chrono::duration_cast<std::chrono::microseconds>(end12 - start12);
-                //total_if += duration12;
-            }
+        for (Particle& particle: current_block.block_particles_v1){
+            //auto start7 = std::chrono::high_resolution_clock::now();
+            const vector<int>& new_block_particle_index = calcParticleIndex(particle, data.grid);
+            //auto end7 = std::chrono::high_resolution_clock::now();
+            //auto duration7 = std::chrono::duration_cast<std::chrono::microseconds>(end7 - start7);
+            //total_calc_particle_index += duration7;
+            //auto start8 = std::chrono::high_resolution_clock::now();
+            particle.density = 0.0;
+            particle.density_updated = false;
+            particle.acceleration[0] = 0.0; particle.acceleration[1] = -9.8; particle.acceleration[2] = 0.0;
+            particle.acceleration_updated = false;
+            //auto end8 = std::chrono::high_resolution_clock::now();
+            //auto duration8 = std::chrono::duration_cast<std::chrono::microseconds>(end8 - start8);
+            //total_reset_parameters += duration8;
+            //auto start12 = std::chrono::high_resolution_clock::now();
+            if (new_block_particle_index != current_block_index){
+                //auto start10 = std::chrono::high_resolution_clock::now();
+                const int index_in_vector = calcParticleIndexVector(data.grid, new_block_particle_index);
+                //auto end10 = std::chrono::high_resolution_clock::now();
+                //auto duration10 = std::chrono::duration_cast<std::chrono::microseconds>(end10 - start10);
+                //total_index_in_vector += duration10;
+                //if (particle.id == 204){cout << "Id Block 204: " << new_block_particle_index[0] << ", " << new_block_particle_index[1] << ", " << new_block_particle_index[2] << '\n';}
+                //cout << "here " << particle.id <<'\n';
+                // añadir a new_block_particles
+                //auto start6 = std::chrono::high_resolution_clock::now();
+                data.grid.grid_blocks[index_in_vector].block_particles_v2.push_back(particle);
+                //auto end6 = std::chrono::high_resolution_clock::now();
+                //auto duration6 = std::chrono::duration_cast<std::chrono::microseconds>(end6 - start6);
+                //total_push_back_new += duration6;
+                // eliminar de old_block_particles
+                //auto start11 = std::chrono::high_resolution_clock::now();
 
+                //auto end11 = std::chrono::high_resolution_clock::now();
+                //auto duration11 = std::chrono::duration_cast<std::chrono::microseconds>(end11 - start11);
+                //total_push_back_to_remove += duration11;
+            }
+            else{
+                current_block.block_particles_v2.push_back(particle);
+            }
+            //auto end12 = std::chrono::high_resolution_clock::now();
+            //auto duration12 = std::chrono::duration_cast<std::chrono::microseconds>(end12 - start12);
+            //total_if += duration12;
         }
         //auto end9 = std::chrono::high_resolution_clock::now();
         //auto duration9 = std::chrono::duration_cast<std::chrono::microseconds>(end9 - start9);
@@ -279,9 +268,8 @@ void updateParticleBlockBelonging(SimulationData& data){
         current_block.updated_density=false;
         current_block.updated_acceleration=false;
         //auto start5 = std::chrono::high_resolution_clock::now();
-        if (!particles_to_remove.empty()) {
-            removeParticlesFromBlock(current_block, particles_to_remove);
-        }
+        current_block.block_particles_v1.clear();
+
         //auto end5 = std::chrono::high_resolution_clock::now();
         //auto duration5 = std::chrono::duration_cast<std::chrono::microseconds>(end5 - start5);
 
@@ -365,14 +353,17 @@ void updateParticle(std::vector<int>& block_index, Particle& particle, Simulatio
         cout << "Acc after limit process: "  << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';
         cout << "---------------------------------" << '\n';
     }*/
+    const int index_in_vector = calcParticleIndexVector(data.grid, block_index);
+    data.grid.grid_blocks[index_in_vector].block_particles_v1.push_back(particle);
 }
 
 void establishParticleFunctionality(SimulationData& data){
     for(Block& block:data.grid.grid_blocks){
-        for (Particle& particle: block.block_particles){
+        for (Particle& particle: block.block_particles_v2){
             //if (particle.id == 204){cout << 204 << '\n';}
             updateParticle(block.block_index, particle, data);
         }
+        block.block_particles_v2.clear();
     }
     //cout << "here-4" << '\n';
 }
