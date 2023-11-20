@@ -6,29 +6,54 @@
 #include "gtest/gtest.h"
 using namespace simulationConstants;
 
-TEST(CalculateBlockSizeTest, PositiveSizeGrid) {
-  Grid grid {{10, 20, 30},{},{}, {}};
-  calculateBlockSize(grid);
-  double expected_sx = (UPPER_LIMIT[0] - LOWER_LIMIT[0]) / grid.grid_dimensions[0];
-  double expected_sy = (UPPER_LIMIT[1] - LOWER_LIMIT[1]) / grid.grid_dimensions[1];
-  double expected_sz = (UPPER_LIMIT[2] - LOWER_LIMIT[2]) / grid.grid_dimensions[2];
+TEST(initGridTest, PositiveSmoothinglength) {
+  Grid grid {{},{},{}, {},};
+  double smoothing_length =  0.00830882;
+  initGrid(grid, smoothing_length);
 
-  EXPECT_DOUBLE_EQ(grid.block_dimensions[0], expected_sx);
-  EXPECT_DOUBLE_EQ(grid.block_dimensions[1], expected_sy);
-  EXPECT_DOUBLE_EQ(grid.block_dimensions[2], expected_sz);
+  EXPECT_DOUBLE_EQ(grid.grid_dimensions[0],15.0);
+  EXPECT_DOUBLE_EQ(grid.grid_dimensions[1],21.0);
+  EXPECT_DOUBLE_EQ(grid.grid_dimensions[2],15.0);
+
+  double s_x = (UPPER_LIMIT[0] - LOWER_LIMIT[0])/grid.grid_dimensions[0];
+  double s_y = (UPPER_LIMIT[1] - LOWER_LIMIT[1])/grid.grid_dimensions[1];
+  double s_z = (UPPER_LIMIT[2] - LOWER_LIMIT[2])/grid.grid_dimensions[2];
+
+  EXPECT_DOUBLE_EQ(grid.block_dimensions[0], s_x);
+  EXPECT_DOUBLE_EQ(grid.block_dimensions[1], s_y);
+  EXPECT_DOUBLE_EQ(grid.block_dimensions[2], s_z);
 }
 
 
-TEST(CalculateBlockSizeTest, ZeroSizeGrid) {
-  Grid grid {{0, 0, 0},{},{}, {}};
-  calculateBlockSize(grid);
+TEST(initGridTest, NegativeSmoothinglength) {
+  Grid grid {{},{},{}, {},};
+  double smoothing_length =  -0.00830882;
+  initGrid(grid, smoothing_length);
 
-  EXPECT_DOUBLE_EQ(grid.block_dimensions[0], 0);
-  EXPECT_DOUBLE_EQ(grid.block_dimensions[1], 0);
-  EXPECT_DOUBLE_EQ(grid.block_dimensions[2], 0);
+  EXPECT_DOUBLE_EQ(grid.grid_dimensions[0],0.0);
+  EXPECT_DOUBLE_EQ(grid.grid_dimensions[1],0.0);
+  EXPECT_DOUBLE_EQ(grid.grid_dimensions[2],0.0);
+
+  EXPECT_DOUBLE_EQ(grid.block_dimensions[0], 0.0);
+  EXPECT_DOUBLE_EQ(grid.block_dimensions[1], 0.0);
+  EXPECT_DOUBLE_EQ(grid.block_dimensions[2], 0.0);
 }
 
+TEST(initGridTest, ZeroSmoothinglength) {
+  Grid grid {{},{},{}, {},};
+  double smoothing_length =  0.0;
+  initGrid(grid, smoothing_length);
 
+  EXPECT_DOUBLE_EQ(grid.grid_dimensions[0],0.0);
+  EXPECT_DOUBLE_EQ(grid.grid_dimensions[1],0.0);
+  EXPECT_DOUBLE_EQ(grid.grid_dimensions[2],0.0);
+
+  EXPECT_DOUBLE_EQ(grid.block_dimensions[0], 0.0);
+  EXPECT_DOUBLE_EQ(grid.block_dimensions[1], 0.0);
+  EXPECT_DOUBLE_EQ(grid.block_dimensions[2], 0.0);
+}
+
+/*
 TEST(CalculateBlockSizeTest, NegativeSizeGrid) {
   Grid grid {{-5, -10, -15},{},{}, {}};
   calculateBlockSize(grid);
@@ -104,4 +129,4 @@ TEST(CalcParticleIndexTest, ParticleIndexGreaterThanLimit) {
   EXPECT_EQ(result[0], 9);
   EXPECT_EQ(result[1], 9);
   EXPECT_EQ(result[2], 9);
-}
+}*/

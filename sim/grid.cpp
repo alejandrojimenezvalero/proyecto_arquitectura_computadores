@@ -2,17 +2,12 @@
 #include "grid.hpp"
 
 #include "cmath"
-
+#include <iostream>
 using namespace simulationConstants;
 
 void initGrid(Grid& grid, double smoothing_length) {
     //Actualiza los miembros de grid según smoothing_length
-    double n_x=0;
-    double n_y=0;
-    double n_z=0;
-    double s_x=0;
-    double s_y=0;
-    double s_z=0;
+    double n_x=0;double n_y=0;double n_z=0;double s_x=0;double s_y=0;double s_z=0;
     if(smoothing_length > 0) {
         n_x = std::floor((UPPER_LIMIT[0] - LOWER_LIMIT[0]) / smoothing_length);
         n_y = std::floor((UPPER_LIMIT[1] - LOWER_LIMIT[1]) / smoothing_length);
