@@ -131,13 +131,6 @@ void readParticleFields(std::ifstream& input_file, Particle& particle) {
     }
 }
 
-void addParticleToBlock(const Particle& particle, Grid& grid, const std::vector<int>& particle_block_index) {
-    for (Block& block : grid.grid_blocks) {
-        if (block.block_index == particle_block_index) {
-            block.block_particles_v1.push_back(particle);
-        }
-    }
-}
 
 int setParticleData(std::ifstream& input_file, SimulationData& data){
     //std::ifstream input_file = openFile(inputFile);
@@ -155,8 +148,9 @@ int setParticleData(std::ifstream& input_file, SimulationData& data){
         //Calculamos los indices
         std::vector<int> particle_block_index = calcParticleIndex(particle, data.grid);
         checkBlockIndex(particle_block_index, data.grid);
+        const int particle_block_vector_index = calcParticleIndexVector(data.grid, particle_block_index);
         particle.id = real_particles;
-        addParticleToBlock(particle, data.grid, particle_block_index);
+        data.grid.grid_blocks[particle_block_vector_index].block_particles_v1.push_back(particle);
         ++real_particles;
         }
     if (data.np != real_particles) {throwException("Error: Number of particles mismatch. Header:  " + std::to_string(data.np) +", Found: " + std::to_string(real_particles),-5); } //NOLINT(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)

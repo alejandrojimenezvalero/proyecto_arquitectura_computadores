@@ -35,6 +35,5 @@ void calculateParameters(double ppm, int np, SimulationData& data);
 int setParticleData(std::ifstream& input_file, SimulationData& data);
 int initiateSimulation(const std::vector<std::string>& stringInitVector);
 void readParticleFields(std::ifstream& input_file, Particle& particle);
-void addParticleToBlock(const Particle& particle, Grid& grid, const std::vector<int>& particle_block_index);
 
 #endif  // FLUID_INITSIMULATION_HPP

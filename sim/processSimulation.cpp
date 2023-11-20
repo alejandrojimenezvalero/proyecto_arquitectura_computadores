@@ -217,7 +217,6 @@ void updateParticleBlockBelonging(SimulationData& data){
         // Acceder al bloque actual
         Block& current_block = data.grid.grid_blocks[i];
         const vector<int>& current_block_index = current_block.block_index;
-        std::vector<Particle> particles_to_remove{};
         //auto start9 = std::chrono::high_resolution_clock::now();
         for (Particle& particle: current_block.block_particles_v1){
             //auto start7 = std::chrono::high_resolution_clock::now();
@@ -369,36 +368,25 @@ void establishParticleFunctionality(SimulationData& data){
 }
 
 int processSimulation(SimulationData& data){
-    //map<vector<int>,vector<vector<int>>> adjacent_blocks = createAdjacentBlocks(data.grid);
-
-    //cout << "check" << '\n';
     //auto start = std::chrono::high_resolution_clock::now();
     updateParticleBlockBelonging(data);
     //auto end = std::chrono::high_resolution_clock::now();
     //auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     //std::cout << "updateParticleBelonging: " << duration.count() << '\n';
-
     //auto start2 = std::chrono::high_resolution_clock::now();
     updateBlocksDensity(data);
     //auto end2 = std::chrono::high_resolution_clock::now();
     //auto duration2 = std::chrono::duration_cast<std::chrono::microseconds>(end2 - start2);
     //std::cout << "updateBlocksDensity: " << duration2.count() << '\n';
-
     //auto start3 = std::chrono::high_resolution_clock::now();
     updateBlocksAcceleration(data);
     //auto end3 = std::chrono::high_resolution_clock::now();
     //auto duration3 = std::chrono::duration_cast<std::chrono::microseconds>(end3 - start3);
     //std::cout << "updateBlocksAcceleration: " << duration3.count() << '\n';
-
-    //std::cout << "-----------END ACCELERATION---------------" << '\n';
-
     //auto start4 = std::chrono::high_resolution_clock::now();
     establishParticleFunctionality(data);
     //auto end4 = std::chrono::high_resolution_clock::now();
     //auto duration4 = std::chrono::duration_cast<std::chrono::microseconds>(end4 - start4);
     //std::cout << "establishParticleFunctionality: " << duration4.count() << '\n';
-
-    //initializeDensityAcceleration(data);
-    //std::cout << "-----------END ITERATION---------------" << '\n';
     return 0;
 }
