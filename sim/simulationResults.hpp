@@ -9,5 +9,6 @@
 
 
 void sortParticlesById(std::vector<Particle>& particles);
-void writeParticleData(const std::string& filename, SimulationData data);
+void saveData(auto& particle, std::ofstream& outputFile);
+void writeParticleData(const std::string& filename, SimulationData& data);
 #endif  // FLUID_SIMULATION_RESULTS_HPP

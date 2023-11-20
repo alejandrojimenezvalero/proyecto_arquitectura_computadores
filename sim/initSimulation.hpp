@@ -13,30 +13,27 @@
 #include <map>
 #include <memory>
 
-struct SimulationData{
-    Grid& grid;
-    double smoothing_length;
-    double smoothing_length_2;
-    double smoothing_length_6;
-    double smoothing_length_9;
-    double particle_mass;
-    double ppm;
-    double np;
-    bool all_particles_density_updated;
-    double escalar_pos;
-    double escalar_vel;
-    double escalar_density;
-
-    SimulationData(Grid& initialGrid)
-            :grid(initialGrid), smoothing_length(0.0), particle_mass(0.0){}
+struct SimulationData {
+    Grid grid;
+    double smoothing_length = 0.0;
+    double smoothing_length_2 = 0.0;
+    double smoothing_length_6 = 0.0;
+    double smoothing_length_9 = 0.0;
+    double particle_mass = 0.0;
+    double ppm = 0.0;
+    double np = 0.0;
+    double escalar_pos = 0.0;
+    double escalar_vel = 0.0;
+    double escalar_density = 0.0;
 };
+
 
 void createGridBlocks(Grid& grid);
 void initAdjIndexVectorBlocks(Grid& grid);
-void checkBlockIndex(int &i, int & index_j, int & index_k, Grid& grid);
+void checkBlockIndex(std::vector<int>& particle_block_index, Grid& grid);
 void calculateParameters(double ppm, int np, SimulationData& data);
 int setParticleData(std::ifstream& input_file, SimulationData& data);
-int initiateSimulation(const std::string& n_iterations, const std::string& inputFile, const std::string& outputFile);
+int initiateSimulation(const std::vector<std::string>& stringInitVector);
 void readParticleFields(std::ifstream& input_file, Particle& particle);
 void addParticleToBlock(const Particle& particle, Grid& grid, const std::vector<int>& particle_block_index);
 

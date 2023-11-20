@@ -10,28 +10,22 @@ void initGrid(Grid& grid, double smoothing_length) {
     double n_x=0;
     double n_y=0;
     double n_z=0;
-
+    double s_x=0;
+    double s_y=0;
+    double s_z=0;
     if(smoothing_length > 0) {
         n_x = std::floor((UPPER_LIMIT[0] - LOWER_LIMIT[0]) / smoothing_length);
         n_y = std::floor((UPPER_LIMIT[1] - LOWER_LIMIT[1]) / smoothing_length);
         n_z = std::floor((UPPER_LIMIT[2] - LOWER_LIMIT[2]) / smoothing_length);
     }
-
     grid.grid_dimensions = {n_x, n_y, n_z};
-    grid.block_dimensions={};
-    grid.grid_blocks={};
-}
-
-void calculateBlockSize(Grid& grid){
-    double s_x=0;
-    double s_y=0;
-    double s_z=0;
     if (grid.grid_dimensions[0] > 0){s_x = (UPPER_LIMIT[0] - LOWER_LIMIT[0])/grid.grid_dimensions[0];}
     if (grid.grid_dimensions[1] > 0){s_y = (UPPER_LIMIT[1] - LOWER_LIMIT[1])/grid.grid_dimensions[1];}
     if (grid.grid_dimensions[2] > 0){s_z = (UPPER_LIMIT[2] - LOWER_LIMIT[2])/grid.grid_dimensions[2];}
-
     grid.block_dimensions = {s_x, s_y, s_z};
+    grid.grid_blocks={};
 }
+
 std::vector<int> calcParticleIndex(Particle& particle, Grid& grid){
     std::vector<int> particle_block_index{};
 
