@@ -223,7 +223,9 @@ void updateParticleBlockBelonging(SimulationData& data){
     //auto total_index_in_vector = std::chrono::microseconds(0);
     //auto total_push_back_to_remove = std::chrono::microseconds(0);
     //auto total_if = std::chrono::microseconds(0);
-    for(Block& current_block:data.grid.grid_blocks){
+    for (std::size_t i = 0; i < data.grid.grid_blocks.size(); i += 1){
+        // Acceder al bloque actual
+        Block& current_block = data.grid.grid_blocks[i];
         const vector<int>& current_block_index = current_block.block_index;
         std::vector<Particle> particles_to_remove{};
         //auto start9 = std::chrono::high_resolution_clock::now();
