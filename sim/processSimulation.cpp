@@ -345,14 +345,14 @@ void updateParticle(std::vector<int>& block_index, Particle& particle, Simulatio
         checkBorderLimits(particle, data, i, block_index[i]);
     }
     // Aqui está la salida del fichero boundint-base
-    /*if (particle.id == 2229) {
+    if (particle.id == 2229) {
         cout << "Density after limit process: " << particle.density << '\n';
         cout << "Pos after limit process: "  << particle.pos[0] << ", " << particle.pos[1] << ", " << particle.pos[2] << '\n';
         cout << "Hv after limit process: "  << particle.hv[0] << ", " << particle.hv[1] << ", " << particle.hv[2] << '\n';
         cout << "V after limit process: "  << particle.vel[0] << ", " << particle.vel[1] << ", " << particle.vel[2] << '\n';
         cout << "Acc after limit process: "  << particle.acceleration[0] << ", " << particle.acceleration[1] << ", " << particle.acceleration[2] << '\n';
         cout << "---------------------------------" << '\n';
-    }*/
+    }
     const int index_in_vector = calcParticleIndexVector(data.grid, block_index);
     data.grid.grid_blocks[index_in_vector].block_particles_v1.push_back(particle);
 }

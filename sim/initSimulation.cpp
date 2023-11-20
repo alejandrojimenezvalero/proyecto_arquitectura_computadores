@@ -119,8 +119,8 @@ void calculateParameters(double ppm, int np, SimulationData& data) {
     std::cout << "Block size: " << data.grid.block_dimensions[0] << " x " << data.grid.block_dimensions[1] << " x " << data.grid.block_dimensions[2] << '\n';
 }
 
-int setParticleData(const std::string& inputFile, SimulationData& data){
-    std::ifstream input_file = openFile(inputFile);
+int setParticleData(std::ifstream& input_file, SimulationData& data){
+    //std::ifstream input_file = openFile(inputFile);
     createGridBlocks(data.grid);
     initAdjIndexVectorBlocks(data.grid);
     std::cout << "check0" << '\n';
@@ -166,7 +166,7 @@ void addParticleToBlock(const Particle& particle, Grid& grid, const std::vector<
 }
 
 int initiateSimulation(const std::string& n_iterations, const std::string& inputFile, const std::string& outputFile) {
-    //auto start = std::chrono::high_resolution_clock::now();
+    auto start = std::chrono::high_resolution_clock::now();
     std::ifstream input_file = openFile(inputFile);
 
     const int n_iterations_int = std::stoi(n_iterations);
@@ -183,10 +183,11 @@ int initiateSimulation(const std::string& n_iterations, const std::string& input
     SimulationData data(grid);
     calculateParameters(ppm, num_particles, data);
 
-    setParticleData(inputFile, data);
-    //auto end = std::chrono::high_resolution_clock::now();
-    //auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    //std::cout << "Init: " << duration.count() << '\n';
+    setParticleData(input_file, data);
+    input_file.close();
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    std::cout << "Init: " << duration.count() << '\n';
 
     for (int i = 0; i < n_iterations_int; ++i) {processSimulation(data);}
     writeParticleData(outputFile, data);
