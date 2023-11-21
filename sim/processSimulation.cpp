@@ -26,8 +26,8 @@ double calculateNorm(const std::vector<double>& particlei, const std::vector<dou
     }
     return sumOfSquares;
 }
-void transformDensity(Particle& particle, const SimulationData& data){
-  particle.density = (particle.density + data.smoothing_length_6) * data.escalar_density;
+void transformDensity(Particle& particle, const double& smoothing_length_6, const double& escalar_density){
+  particle.density = (particle.density + smoothing_length_6) * escalar_density;
 }
 
 void transferAcceleration(Particle& particlei, Particle& particlej, const double& dist, const SimulationData& data) {
@@ -77,7 +77,7 @@ void updateBlocksDensity(SimulationData& data){
                 }
 
             }
-            transformDensity(particle, data);
+            transformDensity(particle, data.smoothing_length_6, data.escalar_density);
             particle.density_updated = true;
             //cout << "Id: "<< particle.id << ", Density: " << particle.density << '\n';
 
@@ -133,12 +133,12 @@ double calcCord(Particle& particle, int index){
     const double cord = particle.pos[index] + particle.hv[index]*TIMESTAMP;
     return cord;
 }
-double calcVariation(int& index_block, const double& cordParticle, const SimulationData& data, int& index){
+double calcVariation(int& index_block, const double& cordParticle, const int& grid_dimensions, int& index){
     double var = 0.0;
     if(index_block == 0){
         var = PARTICLE_SIZE - (cordParticle - LOWER_LIMIT[index]);
     }
-    else if(index_block == data.grid.grid_dimensions[index] - 1){
+    else if(index_block == grid_dimensions - 1){
         var = PARTICLE_SIZE - (UPPER_LIMIT[index] - cordParticle);
     }
     return var;
@@ -163,14 +163,14 @@ void updateVelocity(Particle& particle, int& index){
 void updateHv(Particle& particle, int& index){
     particle.hv[index] += particle.acceleration[index]*TIMESTAMP;
 }
-void checkBorderLimits(Particle& particle, SimulationData& data, int index, int actual_block_index) {
+void checkBorderLimits(Particle& particle, const int& grid_dimensions, int index, int actual_block_index) {
     double d = 0.0;
     const double lower_limit = LOWER_LIMIT[index];
     const double upper_limit = UPPER_LIMIT[index];
 
     if (actual_block_index == 0) {
         d = particle.pos[index] - lower_limit;
-    } else if (actual_block_index == data.grid.grid_dimensions[index] - 1) {
+    } else if (actual_block_index == grid_dimensions - 1) {
         d = upper_limit - particle.pos[index];
     }
     /*if (particle.id == 2229){
@@ -182,7 +182,7 @@ void checkBorderLimits(Particle& particle, SimulationData& data, int index, int 
         double particleAxisPos;
         if (actual_block_index == 0) {
             particleAxisPos = lower_limit - d;
-        } else if (actual_block_index == data.grid.grid_dimensions[index] - 1) {
+        } else if (actual_block_index == grid_dimensions - 1) {
             particleAxisPos = upper_limit + d;
         } else {
             particleAxisPos = particle.pos[index];
@@ -310,7 +310,7 @@ void updateParticle(std::vector<int>& block_index, Particle& particle, Simulatio
     }*/
     for(int i=0; i < 3 ; ++i) {
         const double cord = calcCord(particle, i);
-        const double var = calcVariation(block_index[i], cord, data, i);
+        const double var = calcVariation(block_index[i], cord, data.grid.grid_dimensions[i], i);
         if (var > MINIMUM_VARIATION) { calcAcceleration(particle, var, data, i);}
     }
     /*if (particle.id == 2229) {
@@ -341,7 +341,7 @@ void updateParticle(std::vector<int>& block_index, Particle& particle, Simulatio
     }*/
 
     for(int i=0; i < 3 ; ++i){
-        checkBorderLimits(particle, data, i, block_index[i]);
+        checkBorderLimits(particle, data.grid.grid_dimensions[i], i, block_index[i]);
     }
     // Aqui está la salida del fichero boundint-base
     /*if (particle.id == 2229) {

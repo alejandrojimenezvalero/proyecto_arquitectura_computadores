@@ -14,7 +14,7 @@
 bool blockExists(int i, int j, int k, Grid& grid);
 //std::map<std::vector<int>,std::vector<std::vector<int>>> createAdjacentBlocks(Grid& grid);
 double calculateNorm(const std::vector<double>& particlei, const std::vector<double>& particlej);
-void transformDensity(Particle& particle, const SimulationData& data);
+void transformDensity(Particle& particle, const double smoothing_length_6, const double escalar_density);
 void transferAcceleration(Particle& particlei, Particle& particlej, double& dist, const SimulationData& data);
 //void updateBlock(std::vector<Particle> current_block_particles, std::map<std::vector<int>, std::vector<Particle>> particleSubMap, SimulationData data, std::string mode);
 //void initializeDensityAcceleration(SimulationData& data);
