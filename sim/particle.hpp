@@ -2,6 +2,7 @@
 
 #ifndef FLUID_PARTICLE_HPP
 #define FLUID_PARTICLE_HPP
+
 #include "constants.hpp"
 
 using namespace simulationConstants;
@@ -15,9 +16,11 @@ struct Particle {
     bool density_updated = false;
     bool acceleration_updated = false;
     std::vector<double> acceleration = GRAVITY;
-    Particle() : pos{0.0,0.0,0.0}, hv{0.0,0.0,0.0}, vel{0.0,0.0,0.0} {}
+
+    Particle() : pos{0.0, 0.0, 0.0}, hv{0.0, 0.0, 0.0}, vel{0.0, 0.0, 0.0} {}
+
     //boool operatoor
-    bool operator==(const Particle& other) const {
+    bool operator==(const Particle &other) const {
         return (id == other.id);
     }
 };

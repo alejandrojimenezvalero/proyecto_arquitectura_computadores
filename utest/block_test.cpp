@@ -2,10 +2,12 @@
 #include "../sim/block.hpp"
 
 TEST(CreateBlockTest, InitializesBlockCorrectly) {
-    int i = 1, j = 2, k = 3;
-    Block result = createBlock(i, j, k);
+    const int x_axis = 1;
+    const int y_axis = 2;
+    const int z_axis = 3;
+    Block result = createBlock(x_axis, y_axis, z_axis);
 
-    EXPECT_EQ(result.block_index[0], i);
-    EXPECT_EQ(result.block_index[1], j);
-    EXPECT_EQ(result.block_index[2], k);
+    EXPECT_EQ(result.block_index[0], x_axis);
+    EXPECT_EQ(result.block_index[1], y_axis);
+    EXPECT_EQ(result.block_index[2], z_axis);
 }

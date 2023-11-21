@@ -9,7 +9,7 @@
 
 using namespace testing;
 
-std::string getFileContent(const std::string& filename) {
+std::string getFileContent(const std::string &filename) {
     const std::ifstream file(filename);
     if (file) {
         std::ostringstream buffer;
@@ -22,7 +22,7 @@ std::string getFileContent(const std::string& filename) {
 TEST(ValidateParametersTest, ValidArguments) {
     const std::vector<std::string> args = {"2000", "../../small.fld", "../../output.fld"};
     const std::stringstream captured_stderr;
-    std::streambuf* old_stderr = std::cerr.rdbuf(captured_stderr.rdbuf());
+    std::streambuf *old_stderr = std::cerr.rdbuf(captured_stderr.rdbuf());
 
     const int exit_code = validateParameters(args);
     EXPECT_EQ(exit_code, 0);
@@ -41,10 +41,10 @@ TEST(ValidateParametersTest, InvalidNumberOfArgumentsLessThanThree) {
     std::ofstream temp_file(temp_filename);
 
     // Redirect stderr to the temporary file
-    std::streambuf* original_stderr = std::cerr.rdbuf(temp_file.rdbuf());
+    std::streambuf *original_stderr = std::cerr.rdbuf(temp_file.rdbuf());
 
     // Check exit code
-    EXPECT_EXIT(validateParameters(args),::testing::ExitedWithCode(255),".*");
+    EXPECT_EXIT(validateParameters(args), ::testing::ExitedWithCode(255), ".*");
 
     // Restore stderr
     std::cerr.rdbuf(original_stderr);
@@ -52,7 +52,8 @@ TEST(ValidateParametersTest, InvalidNumberOfArgumentsLessThanThree) {
     temp_file.close();
 
     // Read the captured stderr from the temporary file
-    const std::string expected_error_message = "Error: Invalid number of arguments: " + std::to_string(args.size()) + ".";
+    const std::string expected_error_message =
+            "Error: Invalid number of arguments: " + std::to_string(args.size()) + ".";
     std::string captured_message = getFileContent(temp_filename);
     captured_message.erase(std::remove(captured_message.begin(), captured_message.end(), '\n'), captured_message.end());
 
@@ -71,7 +72,7 @@ TEST(ValidateParametersTest, InvalidNumberOfArgumentsMoreThanThree) {
     std::ofstream temp_file(temp_filename);
 
     // Redirect stderr to the temporary file
-    std::streambuf * original_stderr = std::cerr.rdbuf(temp_file.rdbuf());
+    std::streambuf *original_stderr = std::cerr.rdbuf(temp_file.rdbuf());
 
     // Check exit code
     EXPECT_EXIT(validateParameters(args), ::testing::ExitedWithCode(255), ".*");
@@ -82,7 +83,8 @@ TEST(ValidateParametersTest, InvalidNumberOfArgumentsMoreThanThree) {
     temp_file.close();
 
     // Read the captured stderr from the temporary file
-    const std::string expected_error_message = "Error: Invalid number of arguments: " + std::to_string(args.size()) + ".";
+    const std::string expected_error_message =
+            "Error: Invalid number of arguments: " + std::to_string(args.size()) + ".";
     std::string captured_message = getFileContent(temp_filename);
     captured_message.erase(std::remove(captured_message.begin(), captured_message.end(), '\n'),
                            captured_message.end());
@@ -96,13 +98,13 @@ TEST(ValidateParametersTest, InvalidNumberOfArgumentsMoreThanThree) {
 
 //Invalid Test: invalid number of time steps
 TEST(ValidateParametersTest, NegativeTimeSteps) {
-    std::vector<std::string> args = {"-5",  "../../small.fld", "../../final.fld"};
+    const std::vector<std::string> args = {"-5", "../../small.fld", "../../final.fld"};
     // Create a temporary file to capture stderr
-    std::string temp_filename = "temp_stderr.txt";
+    const std::string temp_filename = "temp_stderr.txt";
     std::ofstream temp_file(temp_filename);
 
     // Redirect stderr to the temporary file
-    std::streambuf * original_stderr = std::cerr.rdbuf(temp_file.rdbuf());
+    std::streambuf *original_stderr = std::cerr.rdbuf(temp_file.rdbuf());
 
     // Check exit code
     EXPECT_EXIT(validateParameters(args), ::testing::ExitedWithCode(254), ".*");
@@ -111,7 +113,7 @@ TEST(ValidateParametersTest, NegativeTimeSteps) {
     std::cerr.rdbuf(original_stderr);
 
     temp_file.close();
-    std::string expected_error_message = "Error: Invalid number of time steps.";
+    const std::string expected_error_message = "Error: Invalid number of time steps.";
     std::string captured_message = getFileContent(temp_filename);
     captured_message.erase(std::remove(captured_message.begin(), captured_message.end(), '\n'),
                            captured_message.end());
@@ -125,11 +127,11 @@ TEST(ValidateParametersTest, NegativeTimeSteps) {
 }
 //Invalid Test: invalid input file because it not exists
 TEST(ValidateParametersTest, CannotOpenInputFile) {
-    std::vector<std::string> args = {"2000",  "../../input.fld",  "../../output.fld"};
-    try{
+    std::vector<std::string> args = {"2000", "../../input.fld", "../../output.fld"};
+    try {
         validateParameters(args);
-    }catch(const std::ofstream::failure& e){
-        const std::string expected_error_message = "Cannot open " + args[1]+  " for reading";
+    } catch (const std::ofstream::failure &e) {
+        const std::string expected_error_message = "Cannot open " + args[1] + " for reading";
         EXPECT_STREQ(expected_error_message.c_str(), e.what());
         EXPECT_EXIT(validateParameters(args), ::testing::ExitedWithCode(252), ".*");
     }
@@ -138,14 +140,14 @@ TEST(ValidateParametersTest, CannotOpenInputFile) {
 
 //Invalid Test: input file valid but without reading permissions
 TEST(ValidateParametersTest, InputFileWithoutPermission) {
-    std::vector<std::string> args = {"2000", "../../small.fld",  "../../output.fld"};
+    std::vector<std::string> args = {"2000", "../../small.fld", "../../output.fld"};
     std::filesystem::permissions(args[1], std::filesystem::perms::owner_read, std::filesystem::perm_options::remove);
     try {
         validateParameters(args);
     }
-    catch (const std::ifstream::failure& e){
+    catch (const std::ifstream::failure &e) {
         std::filesystem::permissions(args[1], std::filesystem::perms::owner_read, std::filesystem::perm_options::add);
-        const std::string expected_error_message = "Cannot open " + args[1]+  " for reading";
+        const std::string expected_error_message = "Cannot open " + args[1] + " for reading";
         EXPECT_STREQ(expected_error_message.c_str(), e.what());
         EXPECT_EXIT(validateParameters(args), ::testing::ExitedWithCode(252), ".*");
 
@@ -154,14 +156,14 @@ TEST(ValidateParametersTest, InputFileWithoutPermission) {
 }
 //Invalid Test: output file valid but without writing permissions
 TEST(ValidateParametersTest, OutputFileWithoutPermission) {
-    std::vector<std::string> args = {"2000", "../../small.fld",  "../../output.fld"};
+    std::vector<std::string> args = {"2000", "../../small.fld", "../../output.fld"};
     std::filesystem::permissions(args[2], std::filesystem::perms::owner_write, std::filesystem::perm_options::remove);
     try {
         validateParameters(args);
     }
-    catch (const std::ifstream::failure& e){
+    catch (const std::ifstream::failure &e) {
         std::filesystem::permissions(args[2], std::filesystem::perms::owner_write, std::filesystem::perm_options::add);
-        const std::string expected_error_message = "Cannot open " + args[1]+  " for writing";
+        const std::string expected_error_message = "Cannot open " + args[1] + " for writing";
         EXPECT_STREQ(expected_error_message.c_str(), e.what());
         EXPECT_EXIT(validateParameters(args), ::testing::ExitedWithCode(251), ".*");
     }

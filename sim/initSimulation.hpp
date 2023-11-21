@@ -27,13 +27,20 @@ struct SimulationData {
     double escalar_density = 0.0;
 };
 
-void createGridBlocks(Grid& grid);
-void initAdjIndexVectorBlocks(Grid& grid);
-void checkBlockIndex(std::vector<int>& particle_block_index, Grid& grid);
-void initializeData(SimulationData& data, double smoothing_length, double particle_mass);
-void calculateParameters(double ppm, int np, SimulationData& data);
-void readParticleFields(std::ifstream& input_file, Particle& particle);
-int setParticleData(std::ifstream& input_file, SimulationData& data);
-int initiateSimulation(const std::vector<std::string>& stringInitVector);
+void createGridBlocks(Grid &grid);
+
+void initAdjIndexVectorBlocks(Grid &grid);
+
+void checkBlockIndex(std::vector<int> &particle_block_index, Grid &grid);
+
+void initializeData(SimulationData &data, double smoothing_length, double particle_mass);
+
+void calculateParameters(double ppm, int np, SimulationData &data);
+
+void readParticleFields(std::ifstream &input_file, Particle &particle);
+
+int setParticleData(std::ifstream &input_file, SimulationData &data);
+
+int initiateSimulation(const std::vector<std::string> &stringInitVector);
 
 #endif  // FLUID_INITSIMULATION_HPP
