@@ -32,7 +32,7 @@ void transformDensity(Particle& particle, const SimulationData& data){
 
 void transferAcceleration(Particle& particlei, Particle& particlej, const double& dist, const SimulationData& data) {
     const double escalar_pos = data.escalar_pos *
-                               ((std::pow(data.smoothing_length - dist, 2)) / dist) * (particlei.density + particlej.density - 2 * simulationConstants::FLUID_DENSITY);
+                               ((data.smoothing_length - dist)*(data.smoothing_length - dist) / dist) * (particlei.density + particlej.density - 2 * simulationConstants::FLUID_DENSITY);
     const double escalar_vel = data.escalar_vel * simulationConstants::VISCOSITY * data.particle_mass;
     const double density_product = particlei.density * particlej.density;
 
@@ -48,25 +48,32 @@ void transferAcceleration(Particle& particlei, Particle& particlej, const double
     particlei.acceleration = {particlei.acceleration[0] + variation_acc[0], particlei.acceleration[1] + variation_acc[1], particlei.acceleration[2] + variation_acc[2]};
     particlej.acceleration = {particlej.acceleration[0] - variation_acc[0], particlej.acceleration[1] - variation_acc[1], particlej.acceleration[2] - variation_acc[2]};
 }
+void removeParticle(std::vector<Particle>& particleVector, int& particleId) {
+    auto it = std::remove_if(particleVector.begin(), particleVector.end(),
+                             [particleId](const Particle& particle) {
+                                 return particle.id == particleId;
+                             });
 
+    // Erase particles that meet the condition
+    particleVector.erase(it, particleVector.end());
+}
 void updateBlocksDensity(SimulationData& data){
     //int c=0; int k= 0;
     for(Block& block: data.grid.grid_blocks){
-        for (Particle& particle: block.block_particles_v2){
+        for (Particle& particle: block.block_particles_density){
             for(const int index_adj:block.adj_index_vector_blocks){
                 Block& adj_block = data.grid.grid_blocks[index_adj];
                 //cout << "index_adj: " << index_adj[0] << ", " << index_adj[1] << ", " << index_adj[2] << ", " <<'\n';
                 //cout << "index_block: " << block.second.block_index[0] << ", " << block.second.block_index[1] << ", " << block.second.block_index[2] << ", " <<'\n';
                 if(!adj_block.updated_density){
                     //if (particle.id == 204 ){cout << "Particle 204: " << particle.density << '\n';}
-                    for(Particle& adj_particle: adj_block.block_particles_v2){
-
+                    for(Particle& adj_particle: adj_block.block_particles_density){
                         //k+=1;
                         if (!adj_particle.density_updated && particle.id != adj_particle.id){
                             double norm_2 = calculateNorm(particle.pos, adj_particle.pos);
                             //c+=1;
                             if(norm_2<data.smoothing_length_2){
-                                const double added_norm = std::pow((data.smoothing_length_2-norm_2),3);
+                                const double added_norm = (data.smoothing_length_2-norm_2)*(data.smoothing_length_2-norm_2)*(data.smoothing_length_2-norm_2);
                                 //if (particle.id == 204 ){cout << "Particle: " << particle.density << '\n';}
                                 //if (adj_particle.id == 204){cout << "Adj_Particle: " << adj_particle.density << '\n';}
                                 particle.density += added_norm, adj_particle.density += added_norm;
@@ -79,6 +86,7 @@ void updateBlocksDensity(SimulationData& data){
             }
             transformDensity(particle, data);
             particle.density_updated = true;
+            block.block_particles_acceleration.push_back(particle);
             //cout << "Id: "<< particle.id << ", Density: " << particle.density << '\n';
 
             /*if (particle.id == 204){
@@ -88,13 +96,14 @@ void updateBlocksDensity(SimulationData& data){
             }*/
         }
         block.updated_density = true;
+        block.block_particles_density.clear();
     }
     //cout << "c: " << c << '\n';
     //cout << "k: " << k << '\n';
 }
 void updateBlocksAcceleration(SimulationData& data){
     for(Block& block: data.grid.grid_blocks){
-        for (Particle& particle: block.block_particles_v2){
+        for (Particle& particle: block.block_particles_acceleration){
             for(int index_adj:block.adj_index_vector_blocks){
                 Block& adj_block = data.grid.grid_blocks[index_adj];
                 //cout << "index_adj: " << index_adj[0] << ", " << index_adj[1] << ", " << index_adj[2] << ", " <<'\n';
@@ -103,7 +112,7 @@ void updateBlocksAcceleration(SimulationData& data){
                 if(!adj_block.updated_acceleration){
                     //c+=1;
                     //if (particle.id == 204 ){cout << "Particle 204: " << particle.density << '\n';}
-                    for(Particle& adj_particle: adj_block.block_particles_v2){
+                    for(Particle& adj_particle: adj_block.block_particles_acceleration){
 
                         if (!adj_particle.acceleration_updated && particle.id != adj_particle.id) {
                             const double norm_2 = calculateNorm(particle.pos, adj_particle.pos);
@@ -118,6 +127,7 @@ void updateBlocksAcceleration(SimulationData& data){
 
             }
             particle.acceleration_updated = true;
+            block.block_particles_v2.push_back(particle);
             /*if (particle.id == 204){
                 cout << "Id: "<< particle.id << ", Density: " << particle.density << '\n';
                 cout << "Pos: " << particle.pos[0] << ", " << particle.pos[1] << ", " << particle.pos[2] << '\n';
@@ -125,6 +135,7 @@ void updateBlocksAcceleration(SimulationData& data){
             }*/
         }
         block.updated_acceleration=true;
+        block.block_particles_acceleration.clear();
     }
     //cout << "c: " << c << '\n';
     //cout << "k: " << k << '\n';
@@ -243,7 +254,7 @@ void updateParticleBlockBelonging(SimulationData& data){
                 //cout << "here " << particle.id <<'\n';
                 // añadir a new_block_particles
                 //auto start6 = std::chrono::high_resolution_clock::now();
-                data.grid.grid_blocks[index_in_vector].block_particles_v2.push_back(particle);
+                data.grid.grid_blocks[index_in_vector].block_particles_density.push_back(particle);
                 //auto end6 = std::chrono::high_resolution_clock::now();
                 //auto duration6 = std::chrono::duration_cast<std::chrono::microseconds>(end6 - start6);
                 //total_push_back_new += duration6;
@@ -255,7 +266,7 @@ void updateParticleBlockBelonging(SimulationData& data){
                 //total_push_back_to_remove += duration11;
             }
             else{
-                current_block.block_particles_v2.push_back(particle);
+                current_block.block_particles_density.push_back(particle);
             }
             //auto end12 = std::chrono::high_resolution_clock::now();
             //auto duration12 = std::chrono::duration_cast<std::chrono::microseconds>(end12 - start12);

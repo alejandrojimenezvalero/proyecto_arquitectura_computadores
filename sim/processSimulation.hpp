@@ -18,6 +18,7 @@ void transformDensity(Particle& particle, const SimulationData& data);
 void transferAcceleration(Particle& particlei, Particle& particlej, double& dist, const SimulationData& data);
 //void updateBlock(std::vector<Particle> current_block_particles, std::map<std::vector<int>, std::vector<Particle>> particleSubMap, SimulationData data, std::string mode);
 //void initializeDensityAcceleration(SimulationData& data);
+void removeParticle(std::vector<Particle>& particleVector, int& particleId);
 void updateBlocksDensity(SimulationData& data);
 void updateBlocksAcceleration(SimulationData& data);
 //void updateBlock2(SubGrid& particleSubMap , SimulationData& data, std::string mode);
