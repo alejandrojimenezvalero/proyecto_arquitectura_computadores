@@ -5,7 +5,6 @@
 using namespace simulationConstants;
 
 void initGrid(Grid& grid, double smoothing_length) {
-    //Actualiza los miembros de grid según smoothing_length
     double n_x=0;double n_y=0;double n_z=0;double s_x=0;double s_y=0;double s_z=0;
     if(smoothing_length > 0) {
         n_x = std::floor((UPPER_LIMIT[0] - LOWER_LIMIT[0]) / smoothing_length);
@@ -38,12 +37,12 @@ std::vector<int> calcParticleIndex(Particle& particle, Grid& grid){
 }
 
 int calcParticleIndexVector(Grid& grid, const std::vector<int>& block_cords){
-    int index_in_vector = grid.adjacent_index_map[block_cords];
+    const int index_in_vector = grid.adjacent_index_map[block_cords];
     return index_in_vector;
 }
 
-
 bool blockExists(int i, int j, int k, Grid& grid){
-    if ((i < 0) or (i > grid.grid_dimensions[0] - 1) or (j < 0) or (i > grid.grid_dimensions[1] - 1) or (k < 0) or (k > grid.grid_dimensions[2] - 1)){return false;}
-    return true;
+    bool block_exist =true;
+    if ((i < 0) or (i > grid.grid_dimensions[0] - 1) or (j < 0) or (i > grid.grid_dimensions[1] - 1) or (k < 0) or (k > grid.grid_dimensions[2] - 1)){block_exist = false;}
+    return block_exist;
 }

@@ -17,7 +17,7 @@ int validateParameters(const std::vector<std::string> &arguments) {
     } catch (const std::invalid_argument &) {throwException("Error: time steps must be numeric.", -1);}
 
     try {
-        std::ifstream inputFile(arguments[1]);
+        const std::ifstream inputFile(arguments[1]);
     } catch (const std::ifstream::failure &e) {
         throwException("Cannot open " + arguments[1] + " for reading", -3);
     }

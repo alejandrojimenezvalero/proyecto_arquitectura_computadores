@@ -8,8 +8,6 @@ struct Block{
     std::vector<int> block_index{};
     std::vector<Particle> block_particles_v1;
     std::vector<Particle> block_particles_v2;
-    //std::vector<Particle> block_particles_acceleration;
-    //std::vector<Particle> block_particles_functionality;
     std::vector<int> adj_index_vector_blocks;
     std::vector<std::vector<int>> adj_blocks_cords;
     bool updated_density = false;

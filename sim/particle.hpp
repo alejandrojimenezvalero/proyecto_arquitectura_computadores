@@ -7,17 +7,15 @@
 using namespace simulationConstants;
 
 struct Particle {
-    int id;
+    int id = 0;
     std::vector<double> pos;
     std::vector<double> hv;
     std::vector<double> vel;
-    double density = 0;
+    double density = 0.0;
     bool density_updated = false;
     bool acceleration_updated = false;
     std::vector<double> acceleration = GRAVITY;
-    Particle() : id(0), pos{0.0,0.0,0.0}, hv{0.0,0.0,0.0}, vel{0.0,0.0,0.0},
-                 density(0.0), density_updated(false), acceleration_updated(false),
-                 acceleration(GRAVITY) {}
+    Particle() : pos{0.0,0.0,0.0}, hv{0.0,0.0,0.0}, vel{0.0,0.0,0.0} {}
     //boool operatoor
     bool operator==(const Particle& other) const {
         return (id == other.id);

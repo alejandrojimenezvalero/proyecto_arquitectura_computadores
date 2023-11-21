@@ -18,34 +18,7 @@
 
 using namespace simulationConstants;
 
-/*
-void createAdjacentBlocks(Block& block, Grid grid) {
-    int i = block.block_index[0];
-    int j = block.block_index[1];
-    int k = block.block_index[2];
-    for (int di = -1; di <= 1; di++) {
-        for (int dj = -1; dj <= 1; dj++) {
-            for (int dk = -1; dk <= 1; dk++) {
-                if (blockExists(i + di, j + dj, k + dk, grid)) {
-                    // Agregar las coordenadas del bloque adyacente al vector
-                    block.adj_blocks.push_back({i + di, j + dj, k + dk});
-                }
-            }
-        }
-    }
-}
-void createGridBlocks(Grid& grid) {
-    for (int i = 0; i < grid.grid_dimensions[0]; ++i) {
-        for (int j = 0; j < grid.grid_dimensions[1]; ++j) {
-            for (int k = 0; k < grid.grid_dimensions[2]; ++k) {
-                Block block = createBlock(i, j, k);
-                createAdjacentBlocks(block, grid);
 
-                grid.grid_blocks.push_back(block);
-            }
-        }
-    }
-}*/
 void createGridBlocks(Grid& grid) {
     int cont = 0;
     for (int i =0; i < grid.grid_dimensions[0]; ++i) {
