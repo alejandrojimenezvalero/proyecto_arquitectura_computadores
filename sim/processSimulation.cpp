@@ -368,6 +368,7 @@ void establishParticleFunctionality(SimulationData& data){
 }
 
 int processSimulation(SimulationData& data){
+
     //auto start = std::chrono::high_resolution_clock::now();
     updateParticleBlockBelonging(data);
     //auto end = std::chrono::high_resolution_clock::now();
