@@ -128,15 +128,14 @@ TEST(ValidateParametersTest, NegativeTimeSteps) {
 //Invalid Test: invalid input file because it not exists
 TEST(ValidateParametersTest, CannotOpenInputFile) {
     std::vector<std::string> args = {"2000", "../../input.fld", "../../output.fld"};
+
     try {
-        validateParameters(args);
-    } catch (const std::ofstream::failure &e) {
-        const std::string expected_error_message = "Cannot open " + args[1] + " for reading";
-        EXPECT_STREQ(expected_error_message.c_str(), e.what());
         EXPECT_EXIT(validateParameters(args), ::testing::ExitedWithCode(252), ".*");
+    } catch (std::ofstream::failure & e) {
+        std::string expected_error_message = "Cannot open " + args[1] + " for reading";
+        EXPECT_STREQ(expected_error_message.c_str(), e.what());
     }
 }
-
 
 //Invalid Test: input file valid but without reading permissions
 TEST(ValidateParametersTest, InputFileWithoutPermission) {

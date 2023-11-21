@@ -31,8 +31,6 @@ void createGridBlocks(Grid &grid);
 
 void initAdjIndexVectorBlocks(Grid &grid);
 
-void checkBlockIndex(std::vector<int> &particle_block_index, Grid &grid);
-
 void initializeData(SimulationData &data, double smoothing_length, double particle_mass);
 
 void calculateParameters(double ppm, int np, SimulationData &data);

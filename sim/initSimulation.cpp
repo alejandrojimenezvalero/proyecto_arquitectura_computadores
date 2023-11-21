@@ -53,19 +53,6 @@ void initAdjIndexVectorBlocks(Grid &grid) {
     }
 }
 
-
-void checkBlockIndex(std::vector<int> &particle_block_index, Grid &grid) {
-    particle_block_index[0] = (particle_block_index[0] < 0) ? 0 : particle_block_index[0];
-    particle_block_index[0] = (particle_block_index[0] > grid.grid_dimensions[0] - 1) ?
-                              static_cast<int>(grid.grid_dimensions[0]) - 1 : particle_block_index[0];
-    particle_block_index[1] = (particle_block_index[1] < 0) ? 0 : particle_block_index[1];
-    particle_block_index[1] = (particle_block_index[1] > grid.grid_dimensions[1] - 1) ?
-                              static_cast<int>(grid.grid_dimensions[1]) - 1 : particle_block_index[1];
-    particle_block_index[2] = (particle_block_index[2] < 0) ? 0 : particle_block_index[2];
-    particle_block_index[2] = (particle_block_index[2] > grid.grid_dimensions[2] - 1) ?
-                              static_cast<int>(grid.grid_dimensions[2]) - 1 : particle_block_index[2];
-}
-
 void initializeData(SimulationData &data, const double smoothing_length, const double particle_mass) {
     data.smoothing_length = smoothing_length;
     data.particle_mass = particle_mass;
@@ -92,7 +79,6 @@ void calculateParameters(double ppm, int np, SimulationData &data) {
     data.ppm = ppm;
 
     initializeData(data, smoothing_length, particle_mass);
-
     std::cout << "Number of particles: " << np << '\n';
     std::cout << "Particles per meter: " << ppm << '\n';
     std::cout << "Smoothing length: " << smoothing_length << '\n';
@@ -128,8 +114,8 @@ int setParticleData(std::ifstream &input_file, SimulationData &data) {
         if (input_file.eof()) {
             break;
         }
-        std::vector<int> particle_block_index = calcParticleIndex(particle, data.grid);
-        checkBlockIndex(particle_block_index, data.grid);
+        const std::vector<int> particle_block_index = calcParticleIndex(particle, data.grid);
+        //checkBlockIndex(particle_block_index, data.grid);
         const int particle_block_vector_index = calcParticleIndexVector(data.grid, particle_block_index);
         particle.id = real_particles;
         data.grid.grid_blocks[particle_block_vector_index].block_particles_v1.push_back(particle);
