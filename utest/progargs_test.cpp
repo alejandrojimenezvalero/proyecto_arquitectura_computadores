@@ -127,19 +127,20 @@ TEST(ValidateParametersTest, NegativeTimeSteps) {
 }
 //Invalid Test: invalid input file because it not exists
 TEST(ValidateParametersTest, CannotOpenInputFile) {
-    std::vector<std::string> args = {"2000", "../../input.fld", "../../output.fld"};
-
+    const std::vector<std::string> args = {"2000", "../../input.fld", "../../output.fld"};
     try {
         validateParameters(args);
-    } catch (std::ofstream::failure & e) {
+    }
+    catch (const std::ifstream::failure &e) {
         const std::string expected_error_message = "Cannot open " + args[1] + " for reading";
         EXPECT_STREQ(expected_error_message.c_str(), e.what());
+
     }
 }
 
 //Invalid Test: input file valid but without reading permissions
 TEST(ValidateParametersTest, InputFileWithoutPermission) {
-    std::vector<std::string> args = {"2000", "../../small.fld", "../../output.fld"};
+    const std::vector<std::string> args = {"2000", "../../small.fld", "../../output.fld"};
     std::filesystem::permissions(args[1], std::filesystem::perms::owner_read, std::filesystem::perm_options::remove);
     try {
         validateParameters(args);
@@ -148,14 +149,13 @@ TEST(ValidateParametersTest, InputFileWithoutPermission) {
         std::filesystem::permissions(args[1], std::filesystem::perms::owner_read, std::filesystem::perm_options::add);
         const std::string expected_error_message = "Cannot open " + args[1] + " for reading";
         EXPECT_STREQ(expected_error_message.c_str(), e.what());
-        //EXPECT_EXIT(validateParameters(args), ::testing::ExitedWithCode(252), ".*");
 
     }
 
 }
 //Invalid Test: output file valid but without writing permissions
 TEST(ValidateParametersTest, OutputFileWithoutPermission) {
-    std::vector<std::string> args = {"2000", "../../small.fld", "../../output.fld"};
+    const std::vector<std::string> args = {"2000", "../../small.fld", "../../output.fld"};
     std::filesystem::permissions(args[2], std::filesystem::perms::owner_write, std::filesystem::perm_options::remove);
     try {
         validateParameters(args);
@@ -164,6 +164,6 @@ TEST(ValidateParametersTest, OutputFileWithoutPermission) {
         std::filesystem::permissions(args[2], std::filesystem::perms::owner_write, std::filesystem::perm_options::add);
         const std::string expected_error_message = "Cannot open " + args[1] + " for writing";
         EXPECT_STREQ(expected_error_message.c_str(), e.what());
-       //EXPECT_EXIT(validateParameters(args), ::testing::ExitedWithCode(251), ".*");
     }
+
 }
