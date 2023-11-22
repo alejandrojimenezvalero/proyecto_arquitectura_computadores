@@ -79,7 +79,7 @@ void calculateParameters(double ppm, int np, SimulationData &data) {
     data.ppm = ppm;
 
     initializeData(data, smoothing_length, particle_mass);
-    std::cout << "Number of particles: " << np << '\n';
+    /*std::cout << "Number of particles: " << np << '\n';
     std::cout << "Particles per meter: " << ppm << '\n';
     std::cout << "Smoothing length: " << smoothing_length << '\n';
     std::cout << "Particle mass: " << particle_mass << '\n';
@@ -88,7 +88,7 @@ void calculateParameters(double ppm, int np, SimulationData &data) {
     std::cout << "Number of blocks: "
               << data.grid.grid_dimensions[0] * data.grid.grid_dimensions[1] * data.grid.grid_dimensions[2] << '\n';
     std::cout << "Block size: " << data.grid.block_dimensions[0] << " x " << data.grid.block_dimensions[1] << " x "
-              << data.grid.block_dimensions[2] << '\n';
+              << data.grid.block_dimensions[2] << '\n';*/
 }
 
 void readParticleFields(std::ifstream &input_file, Particle &particle) {

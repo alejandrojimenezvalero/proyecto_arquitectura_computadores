@@ -21,7 +21,7 @@ struct Particle {
 
     //boool operatoor
     bool operator==(const Particle &other) const {
-        return (id == other.id);
+       return (id == other.id);
     }
 };
 
